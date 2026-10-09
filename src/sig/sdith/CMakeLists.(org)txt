@@ -71,7 +71,6 @@ if(OQS_ENABLE_SIG_sdith_cat1_fast_cipherpow_opt)
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_opt)
         target_compile_options(sdith_cat1_fast_cipherpow_opt_glue PRIVATE "-include" ${SDITH_CAT1_FAST_CIPHERPOW_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_fast_cipherpow_opt_glue PRIVATE OQS_SDITH_CAT1_FAST_CIPHERPOW_OPT)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat1_fast_cipherpow_opt>
@@ -147,7 +146,7 @@ if(OQS_ENABLE_SIG_sdith_cat1_fast_cipherpow_ref)
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_ref)
         target_compile_options(sdith_cat1_fast_cipherpow_ref_glue PRIVATE "-include" ${SDITH_CAT1_FAST_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_fast_cipherpow_ref_glue PRIVATE OQS_SDITH_CAT1_FAST_CIPHERPOW_REF ONLY_REF_IMPLEMENTATION)
+        target_compile_definitions(sdith_cat1_fast_cipherpow_ref_glue PRIVATE ONLY_REF_IMPLEMENTATION)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat1_fast_cipherpow_ref>
@@ -222,7 +221,7 @@ if(OQS_ENABLE_SIG_sdith_cat1_fast_opt)
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_opt)
         target_compile_options(sdith_cat1_fast_opt_glue PRIVATE "-include" ${SDITH_CAT1_FAST_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_fast_opt_glue PRIVATE OQS_SDITH_CAT1_FAST_OPT)
+        target_compile_definitions(sdith_cat1_fast_cipherpow_opt_glue PRIVATE OQS_SDITH_CAT1_FAST_CIPHERPOW_OPT)
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat1_fast_opt>
                 $<TARGET_OBJECTS:sdith_cat1_fast_opt_glue>)
@@ -297,7 +296,7 @@ if(OQS_ENABLE_SIG_sdith_cat1_fast_ref)
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_ref)
         target_compile_options(sdith_cat1_fast_ref_glue PRIVATE "-include" ${SDITH_CAT1_FAST_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_fast_ref_glue PRIVATE OQS_SDITH_CAT1_FAST_REF ONLY_REF_IMPLEMENTATION)
+        target_compile_definitions(sdith_cat1_fast_ref_glue PRIVATE ONLY_REF_IMPLEMENTATION)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat1_fast_ref>
@@ -367,12 +366,11 @@ if(OQS_ENABLE_SIG_sdith_cat1_short_cipherpow_opt)
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_opt/lib/sha3/plain32)
         target_compile_options(sdith_cat1_short_cipherpow_opt PRIVATE "-include" ${SDITH_CAT1_SHORT_CIPHERPOW_OPT_NAMESPACE_HEADER})
 
-        add_library(sdith_cat1_short_cipherpow_opt_glue OBJECT sig_sdith_cat1.c)
+        add_library(sdith_cat1_short_cipherpow_opt_glue OBJECT sig_sdith_cat1_short_cipherpow_opt.c)
         target_include_directories(sdith_cat1_short_cipherpow_opt_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_opt)
         target_compile_options(sdith_cat1_short_cipherpow_opt_glue PRIVATE "-include" ${SDITH_CAT1_SHORT_CIPHERPOW_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_short_cipherpow_opt_glue PRIVATE OQS_SDITH_CAT1_SHORT_CIPHERPOW_OPT)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat1_short_cipherpow_opt>
@@ -443,12 +441,12 @@ if(OQS_ENABLE_SIG_sdith_cat1_short_cipherpow_ref)
         target_compile_options(sdith_cat1_short_cipherpow_ref PRIVATE "-include" ${SDITH_CAT1_SHORT_CIPHERPOW_REF_NAMESPACE_HEADER})
         target_compile_definitions(sdith_cat1_short_cipherpow_ref PRIVATE ONLY_REF_IMPLEMENTATION)
 
-        add_library(sdith_cat1_short_cipherpow_ref_glue OBJECT sig_sdith_cat1.c)
+        add_library(sdith_cat1_short_cipherpow_ref_glue OBJECT sig_sdith_cat1_short_cipherpow_ref.c)
         target_include_directories(sdith_cat1_short_cipherpow_ref_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_ref)
         target_compile_options(sdith_cat1_short_cipherpow_ref_glue PRIVATE "-include" ${SDITH_CAT1_SHORT_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_short_cipherpow_ref_glue PRIVATE OQS_SDITH_CAT1_SHORT_CIPHERPOW_REF ONLY_REF_IMPLEMENTATION)
+        target_compile_definitions(sdith_cat1_short_cipherpow_ref_glue PRIVATE ONLY_REF_IMPLEMENTATION)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat1_short_cipherpow_ref>
@@ -518,12 +516,11 @@ if(OQS_ENABLE_SIG_sdith_cat1_short_opt)
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_opt/lib/sha3/plain32)
         target_compile_options(sdith_cat1_short_opt PRIVATE "-include" ${SDITH_CAT1_SHORT_OPT_NAMESPACE_HEADER})
 
-        add_library(sdith_cat1_short_opt_glue OBJECT sig_sdith_cat1.c)
+        add_library(sdith_cat1_short_opt_glue OBJECT sig_sdith_cat1_short_opt.c)
         target_include_directories(sdith_cat1_short_opt_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_opt)
         target_compile_options(sdith_cat1_short_opt_glue PRIVATE "-include" ${SDITH_CAT1_SHORT_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_short_opt_glue PRIVATE OQS_SDITH_CAT1_SHORT_OPT)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat1_short_opt>
@@ -594,12 +591,12 @@ if(OQS_ENABLE_SIG_sdith_cat1_short_ref)
         target_compile_options(sdith_cat1_short_ref PRIVATE "-include" ${SDITH_CAT1_SHORT_REF_NAMESPACE_HEADER})
         target_compile_definitions(sdith_cat1_short_ref PRIVATE ONLY_REF_IMPLEMENTATION)
 
-        add_library(sdith_cat1_short_ref_glue OBJECT sig_sdith_cat1.c)
+        add_library(sdith_cat1_short_ref_glue OBJECT sig_sdith_cat1_short_ref.c)
         target_include_directories(sdith_cat1_short_ref_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_ref)
         target_compile_options(sdith_cat1_short_ref_glue PRIVATE "-include" ${SDITH_CAT1_SHORT_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_short_ref_glue PRIVATE OQS_SDITH_CAT1_SHORT_REF ONLY_REF_IMPLEMENTATION)
+        target_compile_definitions(sdith_cat1_short_ref_glue PRIVATE ONLY_REF_IMPLEMENTATION)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat1_short_ref>
@@ -669,12 +666,11 @@ if(OQS_ENABLE_SIG_sdith_cat3_fast_cipherpow_opt)
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_opt/lib/sha3/plain32)
         target_compile_options(sdith_cat3_fast_cipherpow_opt PRIVATE "-include" ${SDITH_CAT3_FAST_CIPHERPOW_OPT_NAMESPACE_HEADER})
 
-        add_library(sdith_cat3_fast_cipherpow_opt_glue OBJECT sig_sdith_cat3.c)
+        add_library(sdith_cat3_fast_cipherpow_opt_glue OBJECT sig_sdith_cat3_fast_cipherpow_opt.c)
         target_include_directories(sdith_cat3_fast_cipherpow_opt_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_opt)
         target_compile_options(sdith_cat3_fast_cipherpow_opt_glue PRIVATE "-include" ${SDITH_CAT3_FAST_CIPHERPOW_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_fast_cipherpow_opt_glue PRIVATE OQS_SDITH_CAT3_FAST_CIPHERPOW_OPT)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat3_fast_cipherpow_opt>
@@ -745,12 +741,12 @@ if(OQS_ENABLE_SIG_sdith_cat3_fast_cipherpow_ref)
         target_compile_options(sdith_cat3_fast_cipherpow_ref PRIVATE "-include" ${SDITH_CAT3_FAST_CIPHERPOW_REF_NAMESPACE_HEADER})
         target_compile_definitions(sdith_cat3_fast_cipherpow_ref PRIVATE ONLY_REF_IMPLEMENTATION)
 
-        add_library(sdith_cat3_fast_cipherpow_ref_glue OBJECT sig_sdith_cat3.c)
+        add_library(sdith_cat3_fast_cipherpow_ref_glue OBJECT sig_sdith_cat3_fast_cipherpow_ref.c)
         target_include_directories(sdith_cat3_fast_cipherpow_ref_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_ref)
         target_compile_options(sdith_cat3_fast_cipherpow_ref_glue PRIVATE "-include" ${SDITH_CAT3_FAST_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_fast_cipherpow_ref_glue PRIVATE OQS_SDITH_CAT3_FAST_CIPHERPOW_REF ONLY_REF_IMPLEMENTATION)
+        target_compile_definitions(sdith_cat3_fast_cipherpow_ref_glue PRIVATE ONLY_REF_IMPLEMENTATION)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat3_fast_cipherpow_ref>
@@ -820,12 +816,11 @@ if(OQS_ENABLE_SIG_sdith_cat3_fast_opt)
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_opt/lib/sha3/plain32)
         target_compile_options(sdith_cat3_fast_opt PRIVATE "-include" ${SDITH_CAT3_FAST_OPT_NAMESPACE_HEADER})
 
-        add_library(sdith_cat3_fast_opt_glue OBJECT sig_sdith_cat3.c)
+        add_library(sdith_cat3_fast_opt_glue OBJECT sig_sdith_cat3_fast_opt.c)
         target_include_directories(sdith_cat3_fast_opt_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_opt)
         target_compile_options(sdith_cat3_fast_opt_glue PRIVATE "-include" ${SDITH_CAT3_FAST_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_fast_opt_glue PRIVATE OQS_SDITH_CAT3_FAST_OPT)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat3_fast_opt>
@@ -896,12 +891,12 @@ if(OQS_ENABLE_SIG_sdith_cat3_fast_ref)
         target_compile_options(sdith_cat3_fast_ref PRIVATE "-include" ${SDITH_CAT3_FAST_REF_NAMESPACE_HEADER})
         target_compile_definitions(sdith_cat3_fast_ref PRIVATE ONLY_REF_IMPLEMENTATION)
 
-        add_library(sdith_cat3_fast_ref_glue OBJECT sig_sdith_cat3.c)
+        add_library(sdith_cat3_fast_ref_glue OBJECT sig_sdith_cat3_fast_ref.c)
         target_include_directories(sdith_cat3_fast_ref_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_ref)
         target_compile_options(sdith_cat3_fast_ref_glue PRIVATE "-include" ${SDITH_CAT3_FAST_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_fast_ref_glue PRIVATE OQS_SDITH_CAT3_FAST_REF ONLY_REF_IMPLEMENTATION)
+        target_compile_definitions(sdith_cat3_fast_ref_glue PRIVATE ONLY_REF_IMPLEMENTATION)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat3_fast_ref>
@@ -971,12 +966,11 @@ if(OQS_ENABLE_SIG_sdith_cat3_short_cipherpow_opt)
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_opt/lib/sha3/plain32)
         target_compile_options(sdith_cat3_short_cipherpow_opt PRIVATE "-include" ${SDITH_CAT3_SHORT_CIPHERPOW_OPT_NAMESPACE_HEADER})
 
-        add_library(sdith_cat3_short_cipherpow_opt_glue OBJECT sig_sdith_cat3.c)
+        add_library(sdith_cat3_short_cipherpow_opt_glue OBJECT sig_sdith_cat3_short_cipherpow_opt.c)
         target_include_directories(sdith_cat3_short_cipherpow_opt_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_opt)
         target_compile_options(sdith_cat3_short_cipherpow_opt_glue PRIVATE "-include" ${SDITH_CAT3_SHORT_CIPHERPOW_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_short_cipherpow_opt_glue PRIVATE OQS_SDITH_CAT3_SHORT_CIPHERPOW_OPT)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat3_short_cipherpow_opt>
@@ -1047,12 +1041,12 @@ if(OQS_ENABLE_SIG_sdith_cat3_short_cipherpow_ref)
         target_compile_options(sdith_cat3_short_cipherpow_ref PRIVATE "-include" ${SDITH_CAT3_SHORT_CIPHERPOW_REF_NAMESPACE_HEADER})
         target_compile_definitions(sdith_cat3_short_cipherpow_ref PRIVATE ONLY_REF_IMPLEMENTATION)
 
-        add_library(sdith_cat3_short_cipherpow_ref_glue OBJECT sig_sdith_cat3.c)
+        add_library(sdith_cat3_short_cipherpow_ref_glue OBJECT sig_sdith_cat3_short_cipherpow_ref.c)
         target_include_directories(sdith_cat3_short_cipherpow_ref_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_ref)
         target_compile_options(sdith_cat3_short_cipherpow_ref_glue PRIVATE "-include" ${SDITH_CAT3_SHORT_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_short_cipherpow_ref_glue PRIVATE OQS_SDITH_CAT3_SHORT_CIPHERPOW_REF ONLY_REF_IMPLEMENTATION)
+        target_compile_definitions(sdith_cat3_short_cipherpow_ref_glue PRIVATE ONLY_REF_IMPLEMENTATION)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat3_short_cipherpow_ref>
@@ -1122,12 +1116,11 @@ if(OQS_ENABLE_SIG_sdith_cat3_short_opt)
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_opt/lib/sha3/plain32)
         target_compile_options(sdith_cat3_short_opt PRIVATE "-include" ${SDITH_CAT3_SHORT_OPT_NAMESPACE_HEADER})
 
-        add_library(sdith_cat3_short_opt_glue OBJECT sig_sdith_cat3.c)
+        add_library(sdith_cat3_short_opt_glue OBJECT sig_sdith_cat3_short_opt.c)
         target_include_directories(sdith_cat3_short_opt_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_opt)
         target_compile_options(sdith_cat3_short_opt_glue PRIVATE "-include" ${SDITH_CAT3_SHORT_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_short_opt_glue PRIVATE OQS_SDITH_CAT3_SHORT_OPT)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat3_short_opt>
@@ -1198,12 +1191,12 @@ if(OQS_ENABLE_SIG_sdith_cat3_short_ref)
         target_compile_options(sdith_cat3_short_ref PRIVATE "-include" ${SDITH_CAT3_SHORT_REF_NAMESPACE_HEADER})
         target_compile_definitions(sdith_cat3_short_ref PRIVATE ONLY_REF_IMPLEMENTATION)
 
-        add_library(sdith_cat3_short_ref_glue OBJECT sig_sdith_cat3.c)
+        add_library(sdith_cat3_short_ref_glue OBJECT sig_sdith_cat3_short_ref.c)
         target_include_directories(sdith_cat3_short_ref_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_ref)
         target_compile_options(sdith_cat3_short_ref_glue PRIVATE "-include" ${SDITH_CAT3_SHORT_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_short_ref_glue PRIVATE OQS_SDITH_CAT3_SHORT_REF ONLY_REF_IMPLEMENTATION)
+        target_compile_definitions(sdith_cat3_short_ref_glue PRIVATE ONLY_REF_IMPLEMENTATION)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat3_short_ref>
@@ -1273,12 +1266,11 @@ if(OQS_ENABLE_SIG_sdith_cat5_fast_cipherpow_opt)
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_opt/lib/sha3/plain32)
         target_compile_options(sdith_cat5_fast_cipherpow_opt PRIVATE "-include" ${SDITH_CAT5_FAST_CIPHERPOW_OPT_NAMESPACE_HEADER})
 
-        add_library(sdith_cat5_fast_cipherpow_opt_glue OBJECT sig_sdith_cat5.c)
+        add_library(sdith_cat5_fast_cipherpow_opt_glue OBJECT sig_sdith_cat5_fast_cipherpow_opt.c)
         target_include_directories(sdith_cat5_fast_cipherpow_opt_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_opt)
         target_compile_options(sdith_cat5_fast_cipherpow_opt_glue PRIVATE "-include" ${SDITH_CAT5_FAST_CIPHERPOW_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_fast_cipherpow_opt_glue PRIVATE OQS_SDITH_CAT5_FAST_CIPHERPOW_OPT)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat5_fast_cipherpow_opt>
@@ -1349,12 +1341,12 @@ if(OQS_ENABLE_SIG_sdith_cat5_fast_cipherpow_ref)
         target_compile_options(sdith_cat5_fast_cipherpow_ref PRIVATE "-include" ${SDITH_CAT5_FAST_CIPHERPOW_REF_NAMESPACE_HEADER})
         target_compile_definitions(sdith_cat5_fast_cipherpow_ref PRIVATE ONLY_REF_IMPLEMENTATION)
 
-        add_library(sdith_cat5_fast_cipherpow_ref_glue OBJECT sig_sdith_cat5.c)
+        add_library(sdith_cat5_fast_cipherpow_ref_glue OBJECT sig_sdith_cat5_fast_cipherpow_ref.c)
         target_include_directories(sdith_cat5_fast_cipherpow_ref_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_ref)
         target_compile_options(sdith_cat5_fast_cipherpow_ref_glue PRIVATE "-include" ${SDITH_CAT5_FAST_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_fast_cipherpow_ref_glue PRIVATE OQS_SDITH_CAT5_FAST_CIPHERPOW_REF ONLY_REF_IMPLEMENTATION)
+        target_compile_definitions(sdith_cat5_fast_cipherpow_ref_glue PRIVATE ONLY_REF_IMPLEMENTATION)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat5_fast_cipherpow_ref>
@@ -1424,12 +1416,11 @@ if(OQS_ENABLE_SIG_sdith_cat5_fast_opt)
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_opt/lib/sha3/plain32)
         target_compile_options(sdith_cat5_fast_opt PRIVATE "-include" ${SDITH_CAT5_FAST_OPT_NAMESPACE_HEADER})
 
-        add_library(sdith_cat5_fast_opt_glue OBJECT sig_sdith_cat5.c)
+        add_library(sdith_cat5_fast_opt_glue OBJECT sig_sdith_cat5_fast_opt.c)
         target_include_directories(sdith_cat5_fast_opt_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_opt)
         target_compile_options(sdith_cat5_fast_opt_glue PRIVATE "-include" ${SDITH_CAT5_FAST_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_fast_opt_glue PRIVATE OQS_SDITH_CAT5_FAST_OPT)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat5_fast_opt>
@@ -1500,12 +1491,12 @@ if(OQS_ENABLE_SIG_sdith_cat5_fast_ref)
         target_compile_options(sdith_cat5_fast_ref PRIVATE "-include" ${SDITH_CAT5_FAST_REF_NAMESPACE_HEADER})
         target_compile_definitions(sdith_cat5_fast_ref PRIVATE ONLY_REF_IMPLEMENTATION)
 
-        add_library(sdith_cat5_fast_ref_glue OBJECT sig_sdith_cat5.c)
+        add_library(sdith_cat5_fast_ref_glue OBJECT sig_sdith_cat5_fast_ref.c)
         target_include_directories(sdith_cat5_fast_ref_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_ref)
         target_compile_options(sdith_cat5_fast_ref_glue PRIVATE "-include" ${SDITH_CAT5_FAST_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_fast_ref_glue PRIVATE OQS_SDITH_CAT5_FAST_REF ONLY_REF_IMPLEMENTATION)
+        target_compile_definitions(sdith_cat5_fast_ref_glue PRIVATE ONLY_REF_IMPLEMENTATION)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat5_fast_ref>
@@ -1575,12 +1566,11 @@ if(OQS_ENABLE_SIG_sdith_cat5_short_cipherpow_opt)
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_opt/lib/sha3/plain32)
         target_compile_options(sdith_cat5_short_cipherpow_opt PRIVATE "-include" ${SDITH_CAT5_SHORT_CIPHERPOW_OPT_NAMESPACE_HEADER})
 
-        add_library(sdith_cat5_short_cipherpow_opt_glue OBJECT sig_sdith_cat5.c)
+        add_library(sdith_cat5_short_cipherpow_opt_glue OBJECT sig_sdith_cat5_short_cipherpow_opt.c)
         target_include_directories(sdith_cat5_short_cipherpow_opt_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_opt)
         target_compile_options(sdith_cat5_short_cipherpow_opt_glue PRIVATE "-include" ${SDITH_CAT5_SHORT_CIPHERPOW_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_short_cipherpow_opt_glue PRIVATE OQS_SDITH_CAT5_SHORT_CIPHERPOW_OPT)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat5_short_cipherpow_opt>
@@ -1651,12 +1641,12 @@ if(OQS_ENABLE_SIG_sdith_cat5_short_cipherpow_ref)
         target_compile_options(sdith_cat5_short_cipherpow_ref PRIVATE "-include" ${SDITH_CAT5_SHORT_CIPHERPOW_REF_NAMESPACE_HEADER})
         target_compile_definitions(sdith_cat5_short_cipherpow_ref PRIVATE ONLY_REF_IMPLEMENTATION)
 
-        add_library(sdith_cat5_short_cipherpow_ref_glue OBJECT sig_sdith_cat5.c)
+        add_library(sdith_cat5_short_cipherpow_ref_glue OBJECT sig_sdith_cat5_short_cipherpow_ref.c)
         target_include_directories(sdith_cat5_short_cipherpow_ref_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_ref)
         target_compile_options(sdith_cat5_short_cipherpow_ref_glue PRIVATE "-include" ${SDITH_CAT5_SHORT_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_short_cipherpow_ref_glue PRIVATE OQS_SDITH_CAT5_SHORT_CIPHERPOW_REF ONLY_REF_IMPLEMENTATION)
+        target_compile_definitions(sdith_cat5_short_cipherpow_ref_glue PRIVATE ONLY_REF_IMPLEMENTATION)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat5_short_cipherpow_ref>
@@ -1726,12 +1716,11 @@ if(OQS_ENABLE_SIG_sdith_cat5_short_opt)
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_opt/lib/sha3/plain32)
         target_compile_options(sdith_cat5_short_opt PRIVATE "-include" ${SDITH_CAT5_SHORT_OPT_NAMESPACE_HEADER})
 
-        add_library(sdith_cat5_short_opt_glue OBJECT sig_sdith_cat5.c)
+        add_library(sdith_cat5_short_opt_glue OBJECT sig_sdith_cat5_short_opt.c)
         target_include_directories(sdith_cat5_short_opt_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_opt)
         target_compile_options(sdith_cat5_short_opt_glue PRIVATE "-include" ${SDITH_CAT5_SHORT_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_short_opt_glue PRIVATE OQS_SDITH_CAT5_SHORT_OPT)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat5_short_opt>
@@ -1802,12 +1791,12 @@ if(OQS_ENABLE_SIG_sdith_cat5_short_ref)
         target_compile_options(sdith_cat5_short_ref PRIVATE "-include" ${SDITH_CAT5_SHORT_REF_NAMESPACE_HEADER})
         target_compile_definitions(sdith_cat5_short_ref PRIVATE ONLY_REF_IMPLEMENTATION)
 
-        add_library(sdith_cat5_short_ref_glue OBJECT sig_sdith_cat5.c)
+        add_library(sdith_cat5_short_ref_glue OBJECT sig_sdith_cat5_short_ref.c)
         target_include_directories(sdith_cat5_short_ref_glue PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}
                 ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_ref)
         target_compile_options(sdith_cat5_short_ref_glue PRIVATE "-include" ${SDITH_CAT5_SHORT_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_short_ref_glue PRIVATE OQS_SDITH_CAT5_SHORT_REF ONLY_REF_IMPLEMENTATION)
+        target_compile_definitions(sdith_cat5_short_ref_glue PRIVATE ONLY_REF_IMPLEMENTATION)
 
         set(_SDITH_OBJS ${_SDITH_OBJS}
                 $<TARGET_OBJECTS:sdith_cat5_short_ref>

@@ -192,6 +192,54 @@ extern "C" {
 #define OQS_SIG_alg_mqom_mqom3_cat5_gf2_shorter_ct "mqom3_cat5_gf2_shorter_ct"
 /** Algorithm identifier for mqom3_cat5_gf2_shorter_ot */
 #define OQS_SIG_alg_mqom_mqom3_cat5_gf2_shorter_ot "mqom3_cat5_gf2_shorter_ot"
+/** Algorithm identifier for SDitH-CAT1-FAST-CIPHERPOW-OPT */
+#define OQS_SIG_alg_sdith_cat1_fast_cipherpow_opt "SDitH-CAT1-FAST-CIPHERPOW-OPT"
+/** Algorithm identifier for SDitH-CAT1-FAST-CIPHERPOW-REF */
+#define OQS_SIG_alg_sdith_cat1_fast_cipherpow_ref "SDitH-CAT1-FAST-CIPHERPOW-REF"
+/** Algorithm identifier for SDitH-CAT1-FAST-OPT */
+#define OQS_SIG_alg_sdith_cat1_fast_opt "SDitH-CAT1-FAST-OPT"
+/** Algorithm identifier for SDitH-CAT1-FAST-REF */
+#define OQS_SIG_alg_sdith_cat1_fast_ref "SDitH-CAT1-FAST-REF"
+/** Algorithm identifier for SDitH-CAT1-SHORT-CIPHERPOW-OPT */
+#define OQS_SIG_alg_sdith_cat1_short_cipherpow_opt "SDitH-CAT1-SHORT-CIPHERPOW-OPT"
+/** Algorithm identifier for SDitH-CAT1-SHORT-CIPHERPOW-REF */
+#define OQS_SIG_alg_sdith_cat1_short_cipherpow_ref "SDitH-CAT1-SHORT-CIPHERPOW-REF"
+/** Algorithm identifier for SDitH-CAT1-SHORT-OPT */
+#define OQS_SIG_alg_sdith_cat1_short_opt "SDitH-CAT1-SHORT-OPT"
+/** Algorithm identifier for SDitH-CAT1-SHORT-REF */
+#define OQS_SIG_alg_sdith_cat1_short_ref "SDitH-CAT1-SHORT-REF"
+/** Algorithm identifier for SDitH-CAT3-FAST-CIPHERPOW-OPT */
+#define OQS_SIG_alg_sdith_cat3_fast_cipherpow_opt "SDitH-CAT3-FAST-CIPHERPOW-OPT"
+/** Algorithm identifier for SDitH-CAT3-FAST-CIPHERPOW-REF */
+#define OQS_SIG_alg_sdith_cat3_fast_cipherpow_ref "SDitH-CAT3-FAST-CIPHERPOW-REF"
+/** Algorithm identifier for SDitH-CAT3-FAST-OPT */
+#define OQS_SIG_alg_sdith_cat3_fast_opt "SDitH-CAT3-FAST-OPT"
+/** Algorithm identifier for SDitH-CAT3-FAST-REF */
+#define OQS_SIG_alg_sdith_cat3_fast_ref "SDitH-CAT3-FAST-REF"
+/** Algorithm identifier for SDitH-CAT3-SHORT-CIPHERPOW-OPT */
+#define OQS_SIG_alg_sdith_cat3_short_cipherpow_opt "SDitH-CAT3-SHORT-CIPHERPOW-OPT"
+/** Algorithm identifier for SDitH-CAT3-SHORT-CIPHERPOW-REF */
+#define OQS_SIG_alg_sdith_cat3_short_cipherpow_ref "SDitH-CAT3-SHORT-CIPHERPOW-REF"
+/** Algorithm identifier for SDitH-CAT3-SHORT-OPT */
+#define OQS_SIG_alg_sdith_cat3_short_opt "SDitH-CAT3-SHORT-OPT"
+/** Algorithm identifier for SDitH-CAT3-SHORT-REF */
+#define OQS_SIG_alg_sdith_cat3_short_ref "SDitH-CAT3-SHORT-REF"
+/** Algorithm identifier for SDitH-CAT5-FAST-CIPHERPOW-OPT */
+#define OQS_SIG_alg_sdith_cat5_fast_cipherpow_opt "SDitH-CAT5-FAST-CIPHERPOW-OPT"
+/** Algorithm identifier for SDitH-CAT5-FAST-CIPHERPOW-REF */
+#define OQS_SIG_alg_sdith_cat5_fast_cipherpow_ref "SDitH-CAT5-FAST-CIPHERPOW-REF"
+/** Algorithm identifier for SDitH-CAT5-FAST-OPT */
+#define OQS_SIG_alg_sdith_cat5_fast_opt "SDitH-CAT5-FAST-OPT"
+/** Algorithm identifier for SDitH-CAT5-FAST-REF */
+#define OQS_SIG_alg_sdith_cat5_fast_ref "SDitH-CAT5-FAST-REF"
+/** Algorithm identifier for SDitH-CAT5-SHORT-CIPHERPOW-OPT */
+#define OQS_SIG_alg_sdith_cat5_short_cipherpow_opt "SDitH-CAT5-SHORT-CIPHERPOW-OPT"
+/** Algorithm identifier for SDitH-CAT5-SHORT-CIPHERPOW-REF */
+#define OQS_SIG_alg_sdith_cat5_short_cipherpow_ref "SDitH-CAT5-SHORT-CIPHERPOW-REF"
+/** Algorithm identifier for SDitH-CAT5-SHORT-OPT */
+#define OQS_SIG_alg_sdith_cat5_short_opt "SDitH-CAT5-SHORT-OPT"
+/** Algorithm identifier for SDitH-CAT5-SHORT-REF */
+#define OQS_SIG_alg_sdith_cat5_short_ref "SDitH-CAT5-SHORT-REF"
 ///// OQS_COPY_FROM_UPSTREAM_FRAGMENT_ALG_IDENTIFIER_END
 ///// OQS_COPY_FROM_SLH_DSA_FRAGMENT_ALGID_START
 /** Algorithm identifier for slh_dsa_pure_sha2_128s */
@@ -516,7 +564,7 @@ extern "C" {
 ///// OQS_COPY_FROM_UPSTREAM_FRAGMENT_ALGS_LENGTH_START
 
 /** Number of algorithm identifiers above. */
-#define OQS_SIG_algs_length 80 + OQS_SIG_SLH_DSA_algs_length
+#define OQS_SIG_algs_length 104 + OQS_SIG_SLH_DSA_algs_length
 ///// OQS_COPY_FROM_UPSTREAM_FRAGMENT_ALGS_LENGTH_END
 
 /**
@@ -785,6 +833,9 @@ OQS_API bool OQS_SIG_supports_ctx_str(const char *alg_name);
 #ifdef OQS_ENABLE_SIG_MQOM
 #include <oqs/sig_mqom.h>
 #endif /* OQS_ENABLE_SIG_MQOM */
+#ifdef OQS_ENABLE_SIG_SDITH
+#include <oqs/sig_sdith.h>
+#endif /* OQS_ENABLE_SIG_SDITH */
 ///// OQS_COPY_FROM_UPSTREAM_FRAGMENT_INCLUDE_END
 ///// OQS_COPY_FROM_SLH_DSA_FRAGMENT_INCLUDE_START
 #ifdef OQS_ENABLE_SIG_SLH_DSA
