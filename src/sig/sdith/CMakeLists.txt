@@ -1,1820 +1,246 @@
 # SPDX-License-Identifier: MIT
+#
+# SDitH Round 3 liboqs integration for the per-variant source layout.
+#
+# *_ref : portable/reference implementation only
+# *_opt : x86-64 AVX2/AES-NI optimized implementation
+#
+# Native keygen/sign/verify adaptation is integrated into sig_sdith_cat*.c.
 
 set(_SDITH_OBJS "")
-set(_SDITH_LIBS "")
+
+set(SDITH_PORTABLE_REL_SOURCES
+        commons.c
+        ct_utils.c
+        gf128.c
+        gf192.c
+        gf256.c
+        ggm.c
+        matrix_transpose_f2.c
+        matrix_vector_products_f2.c
+        piop_circuit.c
+        rsd.c
+        sdith_prng.c
+        sdith_signature.c
+        sdith_signature_parameters.c
+        vole_expansion.c
+        vole_parameters.c
+        vole_to_piop.c
+
+        lib/aes/aes_ansi_littleendian_ref.c
+        lib/aes/aes128_ctrle_special_ref.c
+        lib/aes/rijndael256.c
+        lib/aes/rijndael256_ctrle_special_ref.c
+
+        lib/sha3/KeccakHash.c
+        lib/sha3/KeccakHashtimes4.c
+        lib/sha3/KeccakSponge.c
+        lib/sha3/KeccakSpongetimes4.c
+)
+
+set(SDITH_AVX2_REL_SOURCES
+        ct_utils_avx2.c
+        gf128_avx2.c
+        gf192_avx2.c
+        gf256_avx2.c
+        matrix_vector_products_f2_avx2.c
+        sdith_prng_avx2.c
+        vole_parameters_avx2.c
+
+        lib/aes/aes128_ctrle_special_avx2.c
+        lib/aes/rijndael256_avx.c
+        lib/aes/rijndael256_ctrle_special_avx2.c
+
+        lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
+)
+
+set(SDITH_SHA3_REF_REL_SOURCES
+        lib/sha3/opt64/KeccakP-1600-opt64.c
+        lib/sha3/opt64/KeccakP-1600-times4-on1.c
+)
+
+set(SDITH_SHA3_AVX2_SINGLE_REL_SOURCES
+        lib/sha3/opt64/KeccakP-1600-opt64.c
+)
+
+function(sdith_add_variant NAME LEVEL PK SK SIG_BYTES PARAMS BACKEND WRAPPER SELECTOR)
+    set(DIR ${CMAKE_CURRENT_LIST_DIR}/${NAME})
+    set(NAMESPACE_HEADER ${DIR}/namespace_${NAME}.h)
+
+    set(CORE_SOURCES "")
+    foreach(SRC IN LISTS SDITH_PORTABLE_REL_SOURCES)
+        list(APPEND CORE_SOURCES ${NAME}/${SRC})
+    endforeach()
+
+    if(BACKEND STREQUAL "REF")
+        foreach(SRC IN LISTS SDITH_SHA3_REF_REL_SOURCES)
+            list(APPEND CORE_SOURCES ${NAME}/${SRC})
+        endforeach()
+    elseif(BACKEND STREQUAL "AVX2")
+        foreach(SRC IN LISTS SDITH_AVX2_REL_SOURCES)
+            list(APPEND CORE_SOURCES ${NAME}/${SRC})
+        endforeach()
+        foreach(SRC IN LISTS SDITH_SHA3_AVX2_SINGLE_REL_SOURCES)
+            list(APPEND CORE_SOURCES ${NAME}/${SRC})
+        endforeach()
+    else()
+        message(FATAL_ERROR "Unknown SDitH backend '${BACKEND}' for ${NAME}")
+    endif()
+
+    add_library(${NAME}_core OBJECT ${CORE_SOURCES})
+    target_include_directories(${NAME}_core PRIVATE
+        ${DIR}
+        ${DIR}/lib
+        ${DIR}/lib/aes
+        ${DIR}/lib/sha3
+    )
+
+    if(BACKEND STREQUAL "REF")
+        target_include_directories(${NAME}_core PRIVATE ${DIR}/lib/sha3/opt64)
+        target_compile_definitions(${NAME}_core PRIVATE
+            ONLY_REF_IMPLEMENTATION
+            NDEBUG
+        )
+    else()
+        target_include_directories(${NAME}_core PRIVATE
+            ${DIR}/lib/sha3/avx2
+            ${DIR}/lib/sha3/opt64
+        )
+        target_compile_definitions(${NAME}_core PRIVATE NDEBUG)
+        target_compile_options(${NAME}_core PRIVATE
+            -mavx2 -mavx -maes -mpclmul
+        )
+    endif()
+
+    target_compile_options(${NAME}_core PRIVATE
+        "-include" ${NAMESPACE_HEADER}
+    )
+
+    add_library(${NAME}_glue OBJECT ${WRAPPER})
+    target_include_directories(${NAME}_glue PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}
+        ${DIR}
+    )
+    target_compile_options(${NAME}_glue PRIVATE
+        "-include" ${NAMESPACE_HEADER}
+    )
+    target_compile_definitions(${NAME}_glue PRIVATE
+        ${SELECTOR}
+        CRYPTO_PUBLICKEYBYTES=${PK}
+        CRYPTO_SECRETKEYBYTES=${SK}
+        CRYPTO_BYTES=${SIG_BYTES}
+        SIGNATURE_PARAMS=${PARAMS}
+    )
+
+    if(BACKEND STREQUAL "REF")
+        target_compile_definitions(${NAME}_glue PRIVATE ONLY_REF_IMPLEMENTATION)
+    else()
+        target_compile_options(${NAME}_glue PRIVATE
+            -mavx2 -mavx -maes -mpclmul
+        )
+    endif()
+
+    set(_SDITH_OBJS ${_SDITH_OBJS}
+        $<TARGET_OBJECTS:${NAME}_core>
+        $<TARGET_OBJECTS:${NAME}_glue>
+        PARENT_SCOPE
+    )
+endfunction()
 
 if(OQS_ENABLE_SIG_sdith_cat1_fast_cipherpow_opt)
-        set(SDITH_CAT1_FAST_CIPHERPOW_OPT_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_opt/namespace_sdith_cat1_fast_cipherpow_opt.h)
-
-        set(SDITH_CAT1_FAST_CIPHERPOW_OPT_LIB_SOURCES
-                sdith_cat1_fast_cipherpow_opt/commons.c
-                sdith_cat1_fast_cipherpow_opt/ct_utils_avx2.c
-                sdith_cat1_fast_cipherpow_opt/ct_utils.c
-                sdith_cat1_fast_cipherpow_opt/gf128_avx2.c
-                sdith_cat1_fast_cipherpow_opt/gf192_avx2.c
-                sdith_cat1_fast_cipherpow_opt/gf256_avx2.c
-                sdith_cat1_fast_cipherpow_opt/gf128.c
-                sdith_cat1_fast_cipherpow_opt/gf192.c
-                sdith_cat1_fast_cipherpow_opt/gf256.c
-                sdith_cat1_fast_cipherpow_opt/ggm.c
-                sdith_cat1_fast_cipherpow_opt/matrix_transpose_f2.c
-                sdith_cat1_fast_cipherpow_opt/matrix_vector_products_f2_avx2.c
-                sdith_cat1_fast_cipherpow_opt/matrix_vector_products_f2.c
-                sdith_cat1_fast_cipherpow_opt/piop_circuit.c
-                sdith_cat1_fast_cipherpow_opt/PQCgenKAt_sign.c
-                sdith_cat1_fast_cipherpow_opt/rng.c
-                sdith_cat1_fast_cipherpow_opt/rsd.c
-                sdith_cat1_fast_cipherpow_opt/sdith_prng_avx2.c
-                sdith_cat1_fast_cipherpow_opt/sdith_prng.c
-                sdith_cat1_fast_cipherpow_opt/sdith_signature.c
-                sdith_cat1_fast_cipherpow_opt/sdith_signature_parameters.c
-                sdith_cat1_fast_cipherpow_opt/sign.c
-                sdith_cat1_fast_cipherpow_opt/vole_expansion.c
-                sdith_cat1_fast_cipherpow_opt/vole_parameters_avx2.c
-                sdith_cat1_fast_cipherpow_opt/vole_parameters.c
-                sdith_cat1_fast_cipherpow_opt/vole_to_piop.c
-                sdith_cat1_fast_cipherpow_opt/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat1_fast_cipherpow_opt/lib/aes/aes_ansi_ref.c
-                sdith_cat1_fast_cipherpow_opt/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat1_fast_cipherpow_opt/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat1_fast_cipherpow_opt/lib/aes/rijndael256.c
-                sdith_cat1_fast_cipherpow_opt/lib/aes/rijndael256_avx.c
-                sdith_cat1_fast_cipherpow_opt/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat1_fast_cipherpow_opt/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat1_fast_cipherpow_opt/lib/sha3/KeccakHash.c
-                sdith_cat1_fast_cipherpow_opt/lib/sha3/KeccakHashtimes4.c
-                sdith_cat1_fast_cipherpow_opt/lib/sha3/KeccakSponge.c
-                sdith_cat1_fast_cipherpow_opt/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat1_fast_cipherpow_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat1_fast_cipherpow_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_fast_cipherpow_opt/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_fast_cipherpow_opt/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat1_fast_cipherpow_opt/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat1_fast_cipherpow_opt/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat1_fast_cipherpow_opt/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat1_fast_cipherpow_opt OBJECT ${SDITH_CAT1_FAST_CIPHERPOW_OPT_LIB_SOURCES})
-        target_include_directories(sdith_cat1_fast_cipherpow_opt PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_opt
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_opt/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_opt/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_opt/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_opt/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_opt/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_opt/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_opt/lib/sha3/plain32)
-        target_compile_options(sdith_cat1_fast_cipherpow_opt PRIVATE "-include" ${SDITH_CAT1_FAST_CIPHERPOW_OPT_NAMESPACE_HEADER})
-
-        add_library(sdith_cat1_fast_cipherpow_opt_glue OBJECT sig_sdith_cat1.c)
-        target_include_directories(sdith_cat1_fast_cipherpow_opt_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_opt)
-        target_compile_options(sdith_cat1_fast_cipherpow_opt_glue PRIVATE "-include" ${SDITH_CAT1_FAST_CIPHERPOW_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_fast_cipherpow_opt_glue PRIVATE OQS_SDITH_CAT1_FAST_CIPHERPOW_OPT)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat1_fast_cipherpow_opt>
-                $<TARGET_OBJECTS:sdith_cat1_fast_cipherpow_opt_glue>)
+    sdith_add_variant(sdith_cat1_fast_cipherpow_opt 1 70 147 4643 CAT1_FAST_CIPHERPOW_PARAMETERS AVX2 sig_sdith_cat1.c OQS_SDITH_CAT1_FAST_CIPHERPOW_OPT)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat1_fast_cipherpow_ref)
-        set(SDITH_CAT1_FAST_CIPHERPOW_REF_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_ref/namespace_sdith_cat1_fast_cipherpow_ref.h)
-
-        set(SDITH_CAT1_FAST_CIPHERPOW_REF_LIB_SOURCES
-                sdith_cat1_fast_cipherpow_ref/commons.c
-                sdith_cat1_fast_cipherpow_ref/ct_utils_avx2.c
-                sdith_cat1_fast_cipherpow_ref/ct_utils.c
-                sdith_cat1_fast_cipherpow_ref/gf128_avx2.c
-                sdith_cat1_fast_cipherpow_ref/gf192_avx2.c
-                sdith_cat1_fast_cipherpow_ref/gf256_avx2.c
-                sdith_cat1_fast_cipherpow_ref/gf128.c
-                sdith_cat1_fast_cipherpow_ref/gf192.c
-                sdith_cat1_fast_cipherpow_ref/gf256.c
-                sdith_cat1_fast_cipherpow_ref/ggm.c
-                sdith_cat1_fast_cipherpow_ref/matrix_transpose_f2.c
-                sdith_cat1_fast_cipherpow_ref/matrix_vector_products_f2_avx2.c
-                sdith_cat1_fast_cipherpow_ref/matrix_vector_products_f2.c
-                sdith_cat1_fast_cipherpow_ref/piop_circuit.c
-                sdith_cat1_fast_cipherpow_ref/PQCgenKAt_sign.c
-                sdith_cat1_fast_cipherpow_ref/rng.c
-                sdith_cat1_fast_cipherpow_ref/rsd.c
-                sdith_cat1_fast_cipherpow_ref/sdith_prng_avx2.c
-                sdith_cat1_fast_cipherpow_ref/sdith_prng.c
-                sdith_cat1_fast_cipherpow_ref/sdith_signature.c
-                sdith_cat1_fast_cipherpow_ref/sdith_signature_parameters.c
-                sdith_cat1_fast_cipherpow_ref/sign.c
-                sdith_cat1_fast_cipherpow_ref/vole_expansion.c
-                sdith_cat1_fast_cipherpow_ref/vole_parameters_avx2.c
-                sdith_cat1_fast_cipherpow_ref/vole_parameters.c
-                sdith_cat1_fast_cipherpow_ref/vole_to_piop.c
-                sdith_cat1_fast_cipherpow_ref/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat1_fast_cipherpow_ref/lib/aes/aes_ansi_ref.c
-                sdith_cat1_fast_cipherpow_ref/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat1_fast_cipherpow_ref/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat1_fast_cipherpow_ref/lib/aes/rijndael256.c
-                sdith_cat1_fast_cipherpow_ref/lib/aes/rijndael256_avx.c
-                sdith_cat1_fast_cipherpow_ref/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat1_fast_cipherpow_ref/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat1_fast_cipherpow_ref/lib/sha3/KeccakHash.c
-                sdith_cat1_fast_cipherpow_ref/lib/sha3/KeccakHashtimes4.c
-                sdith_cat1_fast_cipherpow_ref/lib/sha3/KeccakSponge.c
-                sdith_cat1_fast_cipherpow_ref/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat1_fast_cipherpow_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat1_fast_cipherpow_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_fast_cipherpow_ref/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_fast_cipherpow_ref/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat1_fast_cipherpow_ref/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat1_fast_cipherpow_ref/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat1_fast_cipherpow_ref/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat1_fast_cipherpow_ref OBJECT ${SDITH_CAT1_FAST_CIPHERPOW_REF_LIB_SOURCES})
-        target_include_directories(sdith_cat1_fast_cipherpow_ref PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_ref
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_ref/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_ref/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_ref/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_ref/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_ref/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_ref/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_ref/lib/sha3/plain32)
-        target_compile_options(sdith_cat1_fast_cipherpow_ref PRIVATE "-include" ${SDITH_CAT1_FAST_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_fast_cipherpow_ref PRIVATE ONLY_REF_IMPLEMENTATION)
-
-        add_library(sdith_cat1_fast_cipherpow_ref_glue OBJECT sig_sdith_cat1.c)
-        target_include_directories(sdith_cat1_fast_cipherpow_ref_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_cipherpow_ref)
-        target_compile_options(sdith_cat1_fast_cipherpow_ref_glue PRIVATE "-include" ${SDITH_CAT1_FAST_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_fast_cipherpow_ref_glue PRIVATE OQS_SDITH_CAT1_FAST_CIPHERPOW_REF ONLY_REF_IMPLEMENTATION)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat1_fast_cipherpow_ref>
-                $<TARGET_OBJECTS:sdith_cat1_fast_cipherpow_ref_glue>)
+    sdith_add_variant(sdith_cat1_fast_cipherpow_ref 1 70 147 4643 CAT1_FAST_CIPHERPOW_PARAMETERS REF sig_sdith_cat1.c OQS_SDITH_CAT1_FAST_CIPHERPOW_REF)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat1_fast_opt)
-        set(SDITH_CAT1_FAST_OPT_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_opt/namespace_sdith_cat1_fast_opt.h)
-
-        set(SDITH_CAT1_FAST_OPT_LIB_SOURCES
-                sdith_cat1_fast_opt/commons.c
-                sdith_cat1_fast_opt/ct_utils_avx2.c
-                sdith_cat1_fast_opt/ct_utils.c
-                sdith_cat1_fast_opt/gf128_avx2.c
-                sdith_cat1_fast_opt/gf192_avx2.c
-                sdith_cat1_fast_opt/gf256_avx2.c
-                sdith_cat1_fast_opt/gf128.c
-                sdith_cat1_fast_opt/gf192.c
-                sdith_cat1_fast_opt/gf256.c
-                sdith_cat1_fast_opt/ggm.c
-                sdith_cat1_fast_opt/matrix_transpose_f2.c
-                sdith_cat1_fast_opt/matrix_vector_products_f2_avx2.c
-                sdith_cat1_fast_opt/matrix_vector_products_f2.c
-                sdith_cat1_fast_opt/piop_circuit.c
-                sdith_cat1_fast_opt/PQCgenKAt_sign.c
-                sdith_cat1_fast_opt/rng.c
-                sdith_cat1_fast_opt/rsd.c
-                sdith_cat1_fast_opt/sdith_prng_avx2.c
-                sdith_cat1_fast_opt/sdith_prng.c
-                sdith_cat1_fast_opt/sdith_signature.c
-                sdith_cat1_fast_opt/sdith_signature_parameters.c
-                sdith_cat1_fast_opt/sign.c
-                sdith_cat1_fast_opt/vole_expansion.c
-                sdith_cat1_fast_opt/vole_parameters_avx2.c
-                sdith_cat1_fast_opt/vole_parameters.c
-                sdith_cat1_fast_opt/vole_to_piop.c
-                sdith_cat1_fast_opt/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat1_fast_opt/lib/aes/aes_ansi_ref.c
-                sdith_cat1_fast_opt/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat1_fast_opt/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat1_fast_opt/lib/aes/rijndael256.c
-                sdith_cat1_fast_opt/lib/aes/rijndael256_avx.c
-                sdith_cat1_fast_opt/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat1_fast_opt/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat1_fast_opt/lib/sha3/KeccakHash.c
-                sdith_cat1_fast_opt/lib/sha3/KeccakHashtimes4.c
-                sdith_cat1_fast_opt/lib/sha3/KeccakSponge.c
-                sdith_cat1_fast_opt/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat1_fast_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat1_fast_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_fast_opt/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_fast_opt/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat1_fast_opt/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat1_fast_opt/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat1_fast_opt/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat1_fast_opt OBJECT ${SDITH_CAT1_FAST_OPT_LIB_SOURCES})
-        target_include_directories(sdith_cat1_fast_opt PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_opt
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_opt/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_opt/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_opt/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_opt/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_opt/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_opt/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_opt/lib/sha3/plain32)
-        target_compile_options(sdith_cat1_fast_opt PRIVATE "-include" ${SDITH_CAT1_FAST_OPT_NAMESPACE_HEADER})
-
-        add_library(sdith_cat1_fast_opt_glue OBJECT sig_sdith_cat1.c)
-        target_include_directories(sdith_cat1_fast_opt_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_opt)
-        target_compile_options(sdith_cat1_fast_opt_glue PRIVATE "-include" ${SDITH_CAT1_FAST_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_fast_opt_glue PRIVATE OQS_SDITH_CAT1_FAST_OPT)
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat1_fast_opt>
-                $<TARGET_OBJECTS:sdith_cat1_fast_opt_glue>)
+    sdith_add_variant(sdith_cat1_fast_opt 1 70 147 4914 CAT1_FAST_PARAMETERS AVX2 sig_sdith_cat1.c OQS_SDITH_CAT1_FAST_OPT)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat1_fast_ref)
-        set(SDITH_CAT1_FAST_REF_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_ref/namespace_sdith_cat1_fast_ref.h)
-
-        set(SDITH_CAT1_FAST_REF_LIB_SOURCES
-                sdith_cat1_fast_ref/commons.c
-                sdith_cat1_fast_ref/ct_utils_avx2.c
-                sdith_cat1_fast_ref/ct_utils.c
-                sdith_cat1_fast_ref/gf128_avx2.c
-                sdith_cat1_fast_ref/gf192_avx2.c
-                sdith_cat1_fast_ref/gf256_avx2.c
-                sdith_cat1_fast_ref/gf128.c
-                sdith_cat1_fast_ref/gf192.c
-                sdith_cat1_fast_ref/gf256.c
-                sdith_cat1_fast_ref/ggm.c
-                sdith_cat1_fast_ref/matrix_transpose_f2.c
-                sdith_cat1_fast_ref/matrix_vector_products_f2_avx2.c
-                sdith_cat1_fast_ref/matrix_vector_products_f2.c
-                sdith_cat1_fast_ref/piop_circuit.c
-                sdith_cat1_fast_ref/PQCgenKAt_sign.c
-                sdith_cat1_fast_ref/rng.c
-                sdith_cat1_fast_ref/rsd.c
-                sdith_cat1_fast_ref/sdith_prng_avx2.c
-                sdith_cat1_fast_ref/sdith_prng.c
-                sdith_cat1_fast_ref/sdith_signature.c
-                sdith_cat1_fast_ref/sdith_signature_parameters.c
-                sdith_cat1_fast_ref/sign.c
-                sdith_cat1_fast_ref/vole_expansion.c
-                sdith_cat1_fast_ref/vole_parameters_avx2.c
-                sdith_cat1_fast_ref/vole_parameters.c
-                sdith_cat1_fast_ref/vole_to_piop.c
-                sdith_cat1_fast_ref/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat1_fast_ref/lib/aes/aes_ansi_ref.c
-                sdith_cat1_fast_ref/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat1_fast_ref/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat1_fast_ref/lib/aes/rijndael256.c
-                sdith_cat1_fast_ref/lib/aes/rijndael256_avx.c
-                sdith_cat1_fast_ref/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat1_fast_ref/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat1_fast_ref/lib/sha3/KeccakHash.c
-                sdith_cat1_fast_ref/lib/sha3/KeccakHashtimes4.c
-                sdith_cat1_fast_ref/lib/sha3/KeccakSponge.c
-                sdith_cat1_fast_ref/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat1_fast_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat1_fast_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_fast_ref/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_fast_ref/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat1_fast_ref/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat1_fast_ref/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat1_fast_ref/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat1_fast_ref OBJECT ${SDITH_CAT1_FAST_REF_LIB_SOURCES})
-        target_include_directories(sdith_cat1_fast_ref PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_ref
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_ref/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_ref/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_ref/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_ref/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_ref/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_ref/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_ref/lib/sha3/plain32)
-        target_compile_options(sdith_cat1_fast_ref PRIVATE "-include" ${SDITH_CAT1_FAST_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_fast_ref PRIVATE ONLY_REF_IMPLEMENTATION)
-
-        add_library(sdith_cat1_fast_ref_glue OBJECT sig_sdith_cat1.c)
-        target_include_directories(sdith_cat1_fast_ref_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_fast_ref)
-        target_compile_options(sdith_cat1_fast_ref_glue PRIVATE "-include" ${SDITH_CAT1_FAST_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_fast_ref_glue PRIVATE OQS_SDITH_CAT1_FAST_REF ONLY_REF_IMPLEMENTATION)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat1_fast_ref>
-                $<TARGET_OBJECTS:sdith_cat1_fast_ref_glue>)
+    sdith_add_variant(sdith_cat1_fast_ref 1 70 147 4914 CAT1_FAST_PARAMETERS REF sig_sdith_cat1.c OQS_SDITH_CAT1_FAST_REF)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat1_short_cipherpow_opt)
-        set(SDITH_CAT1_SHORT_CIPHERPOW_OPT_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_opt/namespace_sdith_cat1_short_cipherpow_opt.h)
-
-        set(SDITH_CAT1_SHORT_CIPHERPOW_OPT_LIB_SOURCES
-                sdith_cat1_short_cipherpow_opt/commons.c
-                sdith_cat1_short_cipherpow_opt/ct_utils_avx2.c
-                sdith_cat1_short_cipherpow_opt/ct_utils.c
-                sdith_cat1_short_cipherpow_opt/gf128_avx2.c
-                sdith_cat1_short_cipherpow_opt/gf192_avx2.c
-                sdith_cat1_short_cipherpow_opt/gf256_avx2.c
-                sdith_cat1_short_cipherpow_opt/gf128.c
-                sdith_cat1_short_cipherpow_opt/gf192.c
-                sdith_cat1_short_cipherpow_opt/gf256.c
-                sdith_cat1_short_cipherpow_opt/ggm.c
-                sdith_cat1_short_cipherpow_opt/matrix_transpose_f2.c
-                sdith_cat1_short_cipherpow_opt/matrix_vector_products_f2_avx2.c
-                sdith_cat1_short_cipherpow_opt/matrix_vector_products_f2.c
-                sdith_cat1_short_cipherpow_opt/piop_circuit.c
-                sdith_cat1_short_cipherpow_opt/PQCgenKAt_sign.c
-                sdith_cat1_short_cipherpow_opt/rng.c
-                sdith_cat1_short_cipherpow_opt/rsd.c
-                sdith_cat1_short_cipherpow_opt/sdith_prng_avx2.c
-                sdith_cat1_short_cipherpow_opt/sdith_prng.c
-                sdith_cat1_short_cipherpow_opt/sdith_signature.c
-                sdith_cat1_short_cipherpow_opt/sdith_signature_parameters.c
-                sdith_cat1_short_cipherpow_opt/sign.c
-                sdith_cat1_short_cipherpow_opt/vole_expansion.c
-                sdith_cat1_short_cipherpow_opt/vole_parameters_avx2.c
-                sdith_cat1_short_cipherpow_opt/vole_parameters.c
-                sdith_cat1_short_cipherpow_opt/vole_to_piop.c
-                sdith_cat1_short_cipherpow_opt/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat1_short_cipherpow_opt/lib/aes/aes_ansi_ref.c
-                sdith_cat1_short_cipherpow_opt/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat1_short_cipherpow_opt/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat1_short_cipherpow_opt/lib/aes/rijndael256.c
-                sdith_cat1_short_cipherpow_opt/lib/aes/rijndael256_avx.c
-                sdith_cat1_short_cipherpow_opt/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat1_short_cipherpow_opt/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat1_short_cipherpow_opt/lib/sha3/KeccakHash.c
-                sdith_cat1_short_cipherpow_opt/lib/sha3/KeccakHashtimes4.c
-                sdith_cat1_short_cipherpow_opt/lib/sha3/KeccakSponge.c
-                sdith_cat1_short_cipherpow_opt/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat1_short_cipherpow_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat1_short_cipherpow_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_short_cipherpow_opt/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_short_cipherpow_opt/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat1_short_cipherpow_opt/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat1_short_cipherpow_opt/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat1_short_cipherpow_opt/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat1_short_cipherpow_opt OBJECT ${SDITH_CAT1_SHORT_CIPHERPOW_OPT_LIB_SOURCES})
-        target_include_directories(sdith_cat1_short_cipherpow_opt PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_opt
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_opt/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_opt/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_opt/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_opt/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_opt/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_opt/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_opt/lib/sha3/plain32)
-        target_compile_options(sdith_cat1_short_cipherpow_opt PRIVATE "-include" ${SDITH_CAT1_SHORT_CIPHERPOW_OPT_NAMESPACE_HEADER})
-
-        add_library(sdith_cat1_short_cipherpow_opt_glue OBJECT sig_sdith_cat1.c)
-        target_include_directories(sdith_cat1_short_cipherpow_opt_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_opt)
-        target_compile_options(sdith_cat1_short_cipherpow_opt_glue PRIVATE "-include" ${SDITH_CAT1_SHORT_CIPHERPOW_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_short_cipherpow_opt_glue PRIVATE OQS_SDITH_CAT1_SHORT_CIPHERPOW_OPT)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat1_short_cipherpow_opt>
-                $<TARGET_OBJECTS:sdith_cat1_short_cipherpow_opt_glue>)
+    sdith_add_variant(sdith_cat1_short_cipherpow_opt 1 70 147 3721 CAT1_SHORT_CIPHERPOW_PARAMETERS AVX2 sig_sdith_cat1.c OQS_SDITH_CAT1_SHORT_CIPHERPOW_OPT)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat1_short_cipherpow_ref)
-        set(SDITH_CAT1_SHORT_CIPHERPOW_REF_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_ref/namespace_sdith_cat1_short_cipherpow_ref.h)
-
-        set(SDITH_CAT1_SHORT_CIPHERPOW_REF_LIB_SOURCES
-                sdith_cat1_short_cipherpow_ref/commons.c
-                sdith_cat1_short_cipherpow_ref/ct_utils_avx2.c
-                sdith_cat1_short_cipherpow_ref/ct_utils.c
-                sdith_cat1_short_cipherpow_ref/gf128_avx2.c
-                sdith_cat1_short_cipherpow_ref/gf192_avx2.c
-                sdith_cat1_short_cipherpow_ref/gf256_avx2.c
-                sdith_cat1_short_cipherpow_ref/gf128.c
-                sdith_cat1_short_cipherpow_ref/gf192.c
-                sdith_cat1_short_cipherpow_ref/gf256.c
-                sdith_cat1_short_cipherpow_ref/ggm.c
-                sdith_cat1_short_cipherpow_ref/matrix_transpose_f2.c
-                sdith_cat1_short_cipherpow_ref/matrix_vector_products_f2_avx2.c
-                sdith_cat1_short_cipherpow_ref/matrix_vector_products_f2.c
-                sdith_cat1_short_cipherpow_ref/piop_circuit.c
-                sdith_cat1_short_cipherpow_ref/PQCgenKAt_sign.c
-                sdith_cat1_short_cipherpow_ref/rng.c
-                sdith_cat1_short_cipherpow_ref/rsd.c
-                sdith_cat1_short_cipherpow_ref/sdith_prng_avx2.c
-                sdith_cat1_short_cipherpow_ref/sdith_prng.c
-                sdith_cat1_short_cipherpow_ref/sdith_signature.c
-                sdith_cat1_short_cipherpow_ref/sdith_signature_parameters.c
-                sdith_cat1_short_cipherpow_ref/sign.c
-                sdith_cat1_short_cipherpow_ref/vole_expansion.c
-                sdith_cat1_short_cipherpow_ref/vole_parameters_avx2.c
-                sdith_cat1_short_cipherpow_ref/vole_parameters.c
-                sdith_cat1_short_cipherpow_ref/vole_to_piop.c
-                sdith_cat1_short_cipherpow_ref/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat1_short_cipherpow_ref/lib/aes/aes_ansi_ref.c
-                sdith_cat1_short_cipherpow_ref/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat1_short_cipherpow_ref/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat1_short_cipherpow_ref/lib/aes/rijndael256.c
-                sdith_cat1_short_cipherpow_ref/lib/aes/rijndael256_avx.c
-                sdith_cat1_short_cipherpow_ref/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat1_short_cipherpow_ref/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat1_short_cipherpow_ref/lib/sha3/KeccakHash.c
-                sdith_cat1_short_cipherpow_ref/lib/sha3/KeccakHashtimes4.c
-                sdith_cat1_short_cipherpow_ref/lib/sha3/KeccakSponge.c
-                sdith_cat1_short_cipherpow_ref/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat1_short_cipherpow_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat1_short_cipherpow_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_short_cipherpow_ref/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_short_cipherpow_ref/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat1_short_cipherpow_ref/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat1_short_cipherpow_ref/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat1_short_cipherpow_ref/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat1_short_cipherpow_ref OBJECT ${SDITH_CAT1_SHORT_CIPHERPOW_REF_LIB_SOURCES})
-        target_include_directories(sdith_cat1_short_cipherpow_ref PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_ref
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_ref/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_ref/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_ref/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_ref/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_ref/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_ref/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_ref/lib/sha3/plain32)
-        target_compile_options(sdith_cat1_short_cipherpow_ref PRIVATE "-include" ${SDITH_CAT1_SHORT_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_short_cipherpow_ref PRIVATE ONLY_REF_IMPLEMENTATION)
-
-        add_library(sdith_cat1_short_cipherpow_ref_glue OBJECT sig_sdith_cat1.c)
-        target_include_directories(sdith_cat1_short_cipherpow_ref_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_cipherpow_ref)
-        target_compile_options(sdith_cat1_short_cipherpow_ref_glue PRIVATE "-include" ${SDITH_CAT1_SHORT_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_short_cipherpow_ref_glue PRIVATE OQS_SDITH_CAT1_SHORT_CIPHERPOW_REF ONLY_REF_IMPLEMENTATION)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat1_short_cipherpow_ref>
-                $<TARGET_OBJECTS:sdith_cat1_short_cipherpow_ref_glue>)
+    sdith_add_variant(sdith_cat1_short_cipherpow_ref 1 70 147 3721 CAT1_SHORT_CIPHERPOW_PARAMETERS REF sig_sdith_cat1.c OQS_SDITH_CAT1_SHORT_CIPHERPOW_REF)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat1_short_opt)
-        set(SDITH_CAT1_SHORT_OPT_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_opt/namespace_sdith_cat1_short_opt.h)
-
-        set(SDITH_CAT1_SHORT_OPT_LIB_SOURCES
-                sdith_cat1_short_opt/commons.c
-                sdith_cat1_short_opt/ct_utils_avx2.c
-                sdith_cat1_short_opt/ct_utils.c
-                sdith_cat1_short_opt/gf128_avx2.c
-                sdith_cat1_short_opt/gf192_avx2.c
-                sdith_cat1_short_opt/gf256_avx2.c
-                sdith_cat1_short_opt/gf128.c
-                sdith_cat1_short_opt/gf192.c
-                sdith_cat1_short_opt/gf256.c
-                sdith_cat1_short_opt/ggm.c
-                sdith_cat1_short_opt/matrix_transpose_f2.c
-                sdith_cat1_short_opt/matrix_vector_products_f2_avx2.c
-                sdith_cat1_short_opt/matrix_vector_products_f2.c
-                sdith_cat1_short_opt/piop_circuit.c
-                sdith_cat1_short_opt/PQCgenKAt_sign.c
-                sdith_cat1_short_opt/rng.c
-                sdith_cat1_short_opt/rsd.c
-                sdith_cat1_short_opt/sdith_prng_avx2.c
-                sdith_cat1_short_opt/sdith_prng.c
-                sdith_cat1_short_opt/sdith_signature.c
-                sdith_cat1_short_opt/sdith_signature_parameters.c
-                sdith_cat1_short_opt/sign.c
-                sdith_cat1_short_opt/vole_expansion.c
-                sdith_cat1_short_opt/vole_parameters_avx2.c
-                sdith_cat1_short_opt/vole_parameters.c
-                sdith_cat1_short_opt/vole_to_piop.c
-                sdith_cat1_short_opt/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat1_short_opt/lib/aes/aes_ansi_ref.c
-                sdith_cat1_short_opt/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat1_short_opt/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat1_short_opt/lib/aes/rijndael256.c
-                sdith_cat1_short_opt/lib/aes/rijndael256_avx.c
-                sdith_cat1_short_opt/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat1_short_opt/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat1_short_opt/lib/sha3/KeccakHash.c
-                sdith_cat1_short_opt/lib/sha3/KeccakHashtimes4.c
-                sdith_cat1_short_opt/lib/sha3/KeccakSponge.c
-                sdith_cat1_short_opt/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat1_short_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat1_short_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_short_opt/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_short_opt/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat1_short_opt/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat1_short_opt/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat1_short_opt/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat1_short_opt OBJECT ${SDITH_CAT1_SHORT_OPT_LIB_SOURCES})
-        target_include_directories(sdith_cat1_short_opt PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_opt
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_opt/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_opt/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_opt/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_opt/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_opt/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_opt/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_opt/lib/sha3/plain32)
-        target_compile_options(sdith_cat1_short_opt PRIVATE "-include" ${SDITH_CAT1_SHORT_OPT_NAMESPACE_HEADER})
-
-        add_library(sdith_cat1_short_opt_glue OBJECT sig_sdith_cat1.c)
-        target_include_directories(sdith_cat1_short_opt_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_opt)
-        target_compile_options(sdith_cat1_short_opt_glue PRIVATE "-include" ${SDITH_CAT1_SHORT_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_short_opt_glue PRIVATE OQS_SDITH_CAT1_SHORT_OPT)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat1_short_opt>
-                $<TARGET_OBJECTS:sdith_cat1_short_opt_glue>)
+    sdith_add_variant(sdith_cat1_short_opt 1 70 147 3721 CAT1_SHORT_PARAMETERS AVX2 sig_sdith_cat1.c OQS_SDITH_CAT1_SHORT_OPT)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat1_short_ref)
-        set(SDITH_CAT1_SHORT_REF_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_ref/namespace_sdith_cat1_short_ref.h)
-
-        set(SDITH_CAT1_SHORT_REF_LIB_SOURCES
-                sdith_cat1_short_ref/commons.c
-                sdith_cat1_short_ref/ct_utils_avx2.c
-                sdith_cat1_short_ref/ct_utils.c
-                sdith_cat1_short_ref/gf128_avx2.c
-                sdith_cat1_short_ref/gf192_avx2.c
-                sdith_cat1_short_ref/gf256_avx2.c
-                sdith_cat1_short_ref/gf128.c
-                sdith_cat1_short_ref/gf192.c
-                sdith_cat1_short_ref/gf256.c
-                sdith_cat1_short_ref/ggm.c
-                sdith_cat1_short_ref/matrix_transpose_f2.c
-                sdith_cat1_short_ref/matrix_vector_products_f2_avx2.c
-                sdith_cat1_short_ref/matrix_vector_products_f2.c
-                sdith_cat1_short_ref/piop_circuit.c
-                sdith_cat1_short_ref/PQCgenKAt_sign.c
-                sdith_cat1_short_ref/rng.c
-                sdith_cat1_short_ref/rsd.c
-                sdith_cat1_short_ref/sdith_prng_avx2.c
-                sdith_cat1_short_ref/sdith_prng.c
-                sdith_cat1_short_ref/sdith_signature.c
-                sdith_cat1_short_ref/sdith_signature_parameters.c
-                sdith_cat1_short_ref/sign.c
-                sdith_cat1_short_ref/vole_expansion.c
-                sdith_cat1_short_ref/vole_parameters_avx2.c
-                sdith_cat1_short_ref/vole_parameters.c
-                sdith_cat1_short_ref/vole_to_piop.c
-                sdith_cat1_short_ref/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat1_short_ref/lib/aes/aes_ansi_ref.c
-                sdith_cat1_short_ref/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat1_short_ref/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat1_short_ref/lib/aes/rijndael256.c
-                sdith_cat1_short_ref/lib/aes/rijndael256_avx.c
-                sdith_cat1_short_ref/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat1_short_ref/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat1_short_ref/lib/sha3/KeccakHash.c
-                sdith_cat1_short_ref/lib/sha3/KeccakHashtimes4.c
-                sdith_cat1_short_ref/lib/sha3/KeccakSponge.c
-                sdith_cat1_short_ref/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat1_short_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat1_short_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_short_ref/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat1_short_ref/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat1_short_ref/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat1_short_ref/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat1_short_ref/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat1_short_ref OBJECT ${SDITH_CAT1_SHORT_REF_LIB_SOURCES})
-        target_include_directories(sdith_cat1_short_ref PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_ref
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_ref/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_ref/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_ref/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_ref/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_ref/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_ref/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_ref/lib/sha3/plain32)
-        target_compile_options(sdith_cat1_short_ref PRIVATE "-include" ${SDITH_CAT1_SHORT_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_short_ref PRIVATE ONLY_REF_IMPLEMENTATION)
-
-        add_library(sdith_cat1_short_ref_glue OBJECT sig_sdith_cat1.c)
-        target_include_directories(sdith_cat1_short_ref_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat1_short_ref)
-        target_compile_options(sdith_cat1_short_ref_glue PRIVATE "-include" ${SDITH_CAT1_SHORT_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat1_short_ref_glue PRIVATE OQS_SDITH_CAT1_SHORT_REF ONLY_REF_IMPLEMENTATION)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat1_short_ref>
-                $<TARGET_OBJECTS:sdith_cat1_short_ref_glue>)
+    sdith_add_variant(sdith_cat1_short_ref 1 70 147 3721 CAT1_SHORT_PARAMETERS REF sig_sdith_cat1.c OQS_SDITH_CAT1_SHORT_REF)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat3_fast_cipherpow_opt)
-        set(SDITH_CAT3_FAST_CIPHERPOW_OPT_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_opt/namespace_sdith_cat3_fast_cipherpow_opt.h)
-
-        set(SDITH_CAT3_FAST_CIPHERPOW_OPT_LIB_SOURCES
-                sdith_cat3_fast_cipherpow_opt/commons.c
-                sdith_cat3_fast_cipherpow_opt/ct_utils_avx2.c
-                sdith_cat3_fast_cipherpow_opt/ct_utils.c
-                sdith_cat3_fast_cipherpow_opt/gf128_avx2.c
-                sdith_cat3_fast_cipherpow_opt/gf192_avx2.c
-                sdith_cat3_fast_cipherpow_opt/gf256_avx2.c
-                sdith_cat3_fast_cipherpow_opt/gf128.c
-                sdith_cat3_fast_cipherpow_opt/gf192.c
-                sdith_cat3_fast_cipherpow_opt/gf256.c
-                sdith_cat3_fast_cipherpow_opt/ggm.c
-                sdith_cat3_fast_cipherpow_opt/matrix_transpose_f2.c
-                sdith_cat3_fast_cipherpow_opt/matrix_vector_products_f2_avx2.c
-                sdith_cat3_fast_cipherpow_opt/matrix_vector_products_f2.c
-                sdith_cat3_fast_cipherpow_opt/piop_circuit.c
-                sdith_cat3_fast_cipherpow_opt/PQCgenKAt_sign.c
-                sdith_cat3_fast_cipherpow_opt/rng.c
-                sdith_cat3_fast_cipherpow_opt/rsd.c
-                sdith_cat3_fast_cipherpow_opt/sdith_prng_avx2.c
-                sdith_cat3_fast_cipherpow_opt/sdith_prng.c
-                sdith_cat3_fast_cipherpow_opt/sdith_signature.c
-                sdith_cat3_fast_cipherpow_opt/sdith_signature_parameters.c
-                sdith_cat3_fast_cipherpow_opt/sign.c
-                sdith_cat3_fast_cipherpow_opt/vole_expansion.c
-                sdith_cat3_fast_cipherpow_opt/vole_parameters_avx2.c
-                sdith_cat3_fast_cipherpow_opt/vole_parameters.c
-                sdith_cat3_fast_cipherpow_opt/vole_to_piop.c
-                sdith_cat3_fast_cipherpow_opt/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat3_fast_cipherpow_opt/lib/aes/aes_ansi_ref.c
-                sdith_cat3_fast_cipherpow_opt/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat3_fast_cipherpow_opt/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat3_fast_cipherpow_opt/lib/aes/rijndael256.c
-                sdith_cat3_fast_cipherpow_opt/lib/aes/rijndael256_avx.c
-                sdith_cat3_fast_cipherpow_opt/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat3_fast_cipherpow_opt/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat3_fast_cipherpow_opt/lib/sha3/KeccakHash.c
-                sdith_cat3_fast_cipherpow_opt/lib/sha3/KeccakHashtimes4.c
-                sdith_cat3_fast_cipherpow_opt/lib/sha3/KeccakSponge.c
-                sdith_cat3_fast_cipherpow_opt/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat3_fast_cipherpow_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat3_fast_cipherpow_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_fast_cipherpow_opt/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_fast_cipherpow_opt/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat3_fast_cipherpow_opt/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat3_fast_cipherpow_opt/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat3_fast_cipherpow_opt/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat3_fast_cipherpow_opt OBJECT ${SDITH_CAT3_FAST_CIPHERPOW_OPT_LIB_SOURCES})
-        target_include_directories(sdith_cat3_fast_cipherpow_opt PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_opt
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_opt/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_opt/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_opt/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_opt/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_opt/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_opt/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_opt/lib/sha3/plain32)
-        target_compile_options(sdith_cat3_fast_cipherpow_opt PRIVATE "-include" ${SDITH_CAT3_FAST_CIPHERPOW_OPT_NAMESPACE_HEADER})
-
-        add_library(sdith_cat3_fast_cipherpow_opt_glue OBJECT sig_sdith_cat3.c)
-        target_include_directories(sdith_cat3_fast_cipherpow_opt_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_opt)
-        target_compile_options(sdith_cat3_fast_cipherpow_opt_glue PRIVATE "-include" ${SDITH_CAT3_FAST_CIPHERPOW_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_fast_cipherpow_opt_glue PRIVATE OQS_SDITH_CAT3_FAST_CIPHERPOW_OPT)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat3_fast_cipherpow_opt>
-                $<TARGET_OBJECTS:sdith_cat3_fast_cipherpow_opt_glue>)
+    sdith_add_variant(sdith_cat3_fast_cipherpow_opt 3 98 208 10452 CAT3_FAST_CIPHERPOW_PARAMETERS AVX2 sig_sdith_cat3.c OQS_SDITH_CAT3_FAST_CIPHERPOW_OPT)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat3_fast_cipherpow_ref)
-        set(SDITH_CAT3_FAST_CIPHERPOW_REF_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_ref/namespace_sdith_cat3_fast_cipherpow_ref.h)
-
-        set(SDITH_CAT3_FAST_CIPHERPOW_REF_LIB_SOURCES
-                sdith_cat3_fast_cipherpow_ref/commons.c
-                sdith_cat3_fast_cipherpow_ref/ct_utils_avx2.c
-                sdith_cat3_fast_cipherpow_ref/ct_utils.c
-                sdith_cat3_fast_cipherpow_ref/gf128_avx2.c
-                sdith_cat3_fast_cipherpow_ref/gf192_avx2.c
-                sdith_cat3_fast_cipherpow_ref/gf256_avx2.c
-                sdith_cat3_fast_cipherpow_ref/gf128.c
-                sdith_cat3_fast_cipherpow_ref/gf192.c
-                sdith_cat3_fast_cipherpow_ref/gf256.c
-                sdith_cat3_fast_cipherpow_ref/ggm.c
-                sdith_cat3_fast_cipherpow_ref/matrix_transpose_f2.c
-                sdith_cat3_fast_cipherpow_ref/matrix_vector_products_f2_avx2.c
-                sdith_cat3_fast_cipherpow_ref/matrix_vector_products_f2.c
-                sdith_cat3_fast_cipherpow_ref/piop_circuit.c
-                sdith_cat3_fast_cipherpow_ref/PQCgenKAt_sign.c
-                sdith_cat3_fast_cipherpow_ref/rng.c
-                sdith_cat3_fast_cipherpow_ref/rsd.c
-                sdith_cat3_fast_cipherpow_ref/sdith_prng_avx2.c
-                sdith_cat3_fast_cipherpow_ref/sdith_prng.c
-                sdith_cat3_fast_cipherpow_ref/sdith_signature.c
-                sdith_cat3_fast_cipherpow_ref/sdith_signature_parameters.c
-                sdith_cat3_fast_cipherpow_ref/sign.c
-                sdith_cat3_fast_cipherpow_ref/vole_expansion.c
-                sdith_cat3_fast_cipherpow_ref/vole_parameters_avx2.c
-                sdith_cat3_fast_cipherpow_ref/vole_parameters.c
-                sdith_cat3_fast_cipherpow_ref/vole_to_piop.c
-                sdith_cat3_fast_cipherpow_ref/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat3_fast_cipherpow_ref/lib/aes/aes_ansi_ref.c
-                sdith_cat3_fast_cipherpow_ref/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat3_fast_cipherpow_ref/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat3_fast_cipherpow_ref/lib/aes/rijndael256.c
-                sdith_cat3_fast_cipherpow_ref/lib/aes/rijndael256_avx.c
-                sdith_cat3_fast_cipherpow_ref/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat3_fast_cipherpow_ref/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat3_fast_cipherpow_ref/lib/sha3/KeccakHash.c
-                sdith_cat3_fast_cipherpow_ref/lib/sha3/KeccakHashtimes4.c
-                sdith_cat3_fast_cipherpow_ref/lib/sha3/KeccakSponge.c
-                sdith_cat3_fast_cipherpow_ref/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat3_fast_cipherpow_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat3_fast_cipherpow_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_fast_cipherpow_ref/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_fast_cipherpow_ref/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat3_fast_cipherpow_ref/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat3_fast_cipherpow_ref/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat3_fast_cipherpow_ref/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat3_fast_cipherpow_ref OBJECT ${SDITH_CAT3_FAST_CIPHERPOW_REF_LIB_SOURCES})
-        target_include_directories(sdith_cat3_fast_cipherpow_ref PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_ref
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_ref/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_ref/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_ref/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_ref/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_ref/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_ref/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_ref/lib/sha3/plain32)
-        target_compile_options(sdith_cat3_fast_cipherpow_ref PRIVATE "-include" ${SDITH_CAT3_FAST_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_fast_cipherpow_ref PRIVATE ONLY_REF_IMPLEMENTATION)
-
-        add_library(sdith_cat3_fast_cipherpow_ref_glue OBJECT sig_sdith_cat3.c)
-        target_include_directories(sdith_cat3_fast_cipherpow_ref_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_cipherpow_ref)
-        target_compile_options(sdith_cat3_fast_cipherpow_ref_glue PRIVATE "-include" ${SDITH_CAT3_FAST_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_fast_cipherpow_ref_glue PRIVATE OQS_SDITH_CAT3_FAST_CIPHERPOW_REF ONLY_REF_IMPLEMENTATION)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat3_fast_cipherpow_ref>
-                $<TARGET_OBJECTS:sdith_cat3_fast_cipherpow_ref_glue>)
+    sdith_add_variant(sdith_cat3_fast_cipherpow_ref 3 98 208 10452 CAT3_FAST_CIPHERPOW_PARAMETERS REF sig_sdith_cat3.c OQS_SDITH_CAT3_FAST_CIPHERPOW_REF)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat3_fast_opt)
-        set(SDITH_CAT3_FAST_OPT_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_opt/namespace_sdith_cat3_fast_opt.h)
-
-        set(SDITH_CAT3_FAST_OPT_LIB_SOURCES
-                sdith_cat3_fast_opt/commons.c
-                sdith_cat3_fast_opt/ct_utils_avx2.c
-                sdith_cat3_fast_opt/ct_utils.c
-                sdith_cat3_fast_opt/gf128_avx2.c
-                sdith_cat3_fast_opt/gf192_avx2.c
-                sdith_cat3_fast_opt/gf256_avx2.c
-                sdith_cat3_fast_opt/gf128.c
-                sdith_cat3_fast_opt/gf192.c
-                sdith_cat3_fast_opt/gf256.c
-                sdith_cat3_fast_opt/ggm.c
-                sdith_cat3_fast_opt/matrix_transpose_f2.c
-                sdith_cat3_fast_opt/matrix_vector_products_f2_avx2.c
-                sdith_cat3_fast_opt/matrix_vector_products_f2.c
-                sdith_cat3_fast_opt/piop_circuit.c
-                sdith_cat3_fast_opt/PQCgenKAt_sign.c
-                sdith_cat3_fast_opt/rng.c
-                sdith_cat3_fast_opt/rsd.c
-                sdith_cat3_fast_opt/sdith_prng_avx2.c
-                sdith_cat3_fast_opt/sdith_prng.c
-                sdith_cat3_fast_opt/sdith_signature.c
-                sdith_cat3_fast_opt/sdith_signature_parameters.c
-                sdith_cat3_fast_opt/sign.c
-                sdith_cat3_fast_opt/vole_expansion.c
-                sdith_cat3_fast_opt/vole_parameters_avx2.c
-                sdith_cat3_fast_opt/vole_parameters.c
-                sdith_cat3_fast_opt/vole_to_piop.c
-                sdith_cat3_fast_opt/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat3_fast_opt/lib/aes/aes_ansi_ref.c
-                sdith_cat3_fast_opt/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat3_fast_opt/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat3_fast_opt/lib/aes/rijndael256.c
-                sdith_cat3_fast_opt/lib/aes/rijndael256_avx.c
-                sdith_cat3_fast_opt/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat3_fast_opt/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat3_fast_opt/lib/sha3/KeccakHash.c
-                sdith_cat3_fast_opt/lib/sha3/KeccakHashtimes4.c
-                sdith_cat3_fast_opt/lib/sha3/KeccakSponge.c
-                sdith_cat3_fast_opt/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat3_fast_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat3_fast_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_fast_opt/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_fast_opt/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat3_fast_opt/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat3_fast_opt/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat3_fast_opt/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat3_fast_opt OBJECT ${SDITH_CAT3_FAST_OPT_LIB_SOURCES})
-        target_include_directories(sdith_cat3_fast_opt PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_opt
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_opt/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_opt/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_opt/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_opt/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_opt/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_opt/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_opt/lib/sha3/plain32)
-        target_compile_options(sdith_cat3_fast_opt PRIVATE "-include" ${SDITH_CAT3_FAST_OPT_NAMESPACE_HEADER})
-
-        add_library(sdith_cat3_fast_opt_glue OBJECT sig_sdith_cat3.c)
-        target_include_directories(sdith_cat3_fast_opt_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_opt)
-        target_compile_options(sdith_cat3_fast_opt_glue PRIVATE "-include" ${SDITH_CAT3_FAST_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_fast_opt_glue PRIVATE OQS_SDITH_CAT3_FAST_OPT)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat3_fast_opt>
-                $<TARGET_OBJECTS:sdith_cat3_fast_opt_glue>)
+    sdith_add_variant(sdith_cat3_fast_opt 3 98 208 10852 CAT3_FAST_PARAMETERS AVX2 sig_sdith_cat3.c OQS_SDITH_CAT3_FAST_OPT)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat3_fast_ref)
-        set(SDITH_CAT3_FAST_REF_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_ref/namespace_sdith_cat3_fast_ref.h)
-
-        set(SDITH_CAT3_FAST_REF_LIB_SOURCES
-                sdith_cat3_fast_ref/commons.c
-                sdith_cat3_fast_ref/ct_utils_avx2.c
-                sdith_cat3_fast_ref/ct_utils.c
-                sdith_cat3_fast_ref/gf128_avx2.c
-                sdith_cat3_fast_ref/gf192_avx2.c
-                sdith_cat3_fast_ref/gf256_avx2.c
-                sdith_cat3_fast_ref/gf128.c
-                sdith_cat3_fast_ref/gf192.c
-                sdith_cat3_fast_ref/gf256.c
-                sdith_cat3_fast_ref/ggm.c
-                sdith_cat3_fast_ref/matrix_transpose_f2.c
-                sdith_cat3_fast_ref/matrix_vector_products_f2_avx2.c
-                sdith_cat3_fast_ref/matrix_vector_products_f2.c
-                sdith_cat3_fast_ref/piop_circuit.c
-                sdith_cat3_fast_ref/PQCgenKAt_sign.c
-                sdith_cat3_fast_ref/rng.c
-                sdith_cat3_fast_ref/rsd.c
-                sdith_cat3_fast_ref/sdith_prng_avx2.c
-                sdith_cat3_fast_ref/sdith_prng.c
-                sdith_cat3_fast_ref/sdith_signature.c
-                sdith_cat3_fast_ref/sdith_signature_parameters.c
-                sdith_cat3_fast_ref/sign.c
-                sdith_cat3_fast_ref/vole_expansion.c
-                sdith_cat3_fast_ref/vole_parameters_avx2.c
-                sdith_cat3_fast_ref/vole_parameters.c
-                sdith_cat3_fast_ref/vole_to_piop.c
-                sdith_cat3_fast_ref/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat3_fast_ref/lib/aes/aes_ansi_ref.c
-                sdith_cat3_fast_ref/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat3_fast_ref/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat3_fast_ref/lib/aes/rijndael256.c
-                sdith_cat3_fast_ref/lib/aes/rijndael256_avx.c
-                sdith_cat3_fast_ref/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat3_fast_ref/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat3_fast_ref/lib/sha3/KeccakHash.c
-                sdith_cat3_fast_ref/lib/sha3/KeccakHashtimes4.c
-                sdith_cat3_fast_ref/lib/sha3/KeccakSponge.c
-                sdith_cat3_fast_ref/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat3_fast_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat3_fast_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_fast_ref/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_fast_ref/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat3_fast_ref/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat3_fast_ref/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat3_fast_ref/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat3_fast_ref OBJECT ${SDITH_CAT3_FAST_REF_LIB_SOURCES})
-        target_include_directories(sdith_cat3_fast_ref PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_ref
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_ref/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_ref/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_ref/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_ref/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_ref/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_ref/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_ref/lib/sha3/plain32)
-        target_compile_options(sdith_cat3_fast_ref PRIVATE "-include" ${SDITH_CAT3_FAST_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_fast_ref PRIVATE ONLY_REF_IMPLEMENTATION)
-
-        add_library(sdith_cat3_fast_ref_glue OBJECT sig_sdith_cat3.c)
-        target_include_directories(sdith_cat3_fast_ref_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_fast_ref)
-        target_compile_options(sdith_cat3_fast_ref_glue PRIVATE "-include" ${SDITH_CAT3_FAST_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_fast_ref_glue PRIVATE OQS_SDITH_CAT3_FAST_REF ONLY_REF_IMPLEMENTATION)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat3_fast_ref>
-                $<TARGET_OBJECTS:sdith_cat3_fast_ref_glue>)
+    sdith_add_variant(sdith_cat3_fast_ref 3 98 208 10852 CAT3_FAST_PARAMETERS REF sig_sdith_cat3.c OQS_SDITH_CAT3_FAST_REF)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat3_short_cipherpow_opt)
-        set(SDITH_CAT3_SHORT_CIPHERPOW_OPT_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_opt/namespace_sdith_cat3_short_cipherpow_opt.h)
-
-        set(SDITH_CAT3_SHORT_CIPHERPOW_OPT_LIB_SOURCES
-                sdith_cat3_short_cipherpow_opt/commons.c
-                sdith_cat3_short_cipherpow_opt/ct_utils_avx2.c
-                sdith_cat3_short_cipherpow_opt/ct_utils.c
-                sdith_cat3_short_cipherpow_opt/gf128_avx2.c
-                sdith_cat3_short_cipherpow_opt/gf192_avx2.c
-                sdith_cat3_short_cipherpow_opt/gf256_avx2.c
-                sdith_cat3_short_cipherpow_opt/gf128.c
-                sdith_cat3_short_cipherpow_opt/gf192.c
-                sdith_cat3_short_cipherpow_opt/gf256.c
-                sdith_cat3_short_cipherpow_opt/ggm.c
-                sdith_cat3_short_cipherpow_opt/matrix_transpose_f2.c
-                sdith_cat3_short_cipherpow_opt/matrix_vector_products_f2_avx2.c
-                sdith_cat3_short_cipherpow_opt/matrix_vector_products_f2.c
-                sdith_cat3_short_cipherpow_opt/piop_circuit.c
-                sdith_cat3_short_cipherpow_opt/PQCgenKAt_sign.c
-                sdith_cat3_short_cipherpow_opt/rng.c
-                sdith_cat3_short_cipherpow_opt/rsd.c
-                sdith_cat3_short_cipherpow_opt/sdith_prng_avx2.c
-                sdith_cat3_short_cipherpow_opt/sdith_prng.c
-                sdith_cat3_short_cipherpow_opt/sdith_signature.c
-                sdith_cat3_short_cipherpow_opt/sdith_signature_parameters.c
-                sdith_cat3_short_cipherpow_opt/sign.c
-                sdith_cat3_short_cipherpow_opt/vole_expansion.c
-                sdith_cat3_short_cipherpow_opt/vole_parameters_avx2.c
-                sdith_cat3_short_cipherpow_opt/vole_parameters.c
-                sdith_cat3_short_cipherpow_opt/vole_to_piop.c
-                sdith_cat3_short_cipherpow_opt/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat3_short_cipherpow_opt/lib/aes/aes_ansi_ref.c
-                sdith_cat3_short_cipherpow_opt/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat3_short_cipherpow_opt/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat3_short_cipherpow_opt/lib/aes/rijndael256.c
-                sdith_cat3_short_cipherpow_opt/lib/aes/rijndael256_avx.c
-                sdith_cat3_short_cipherpow_opt/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat3_short_cipherpow_opt/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat3_short_cipherpow_opt/lib/sha3/KeccakHash.c
-                sdith_cat3_short_cipherpow_opt/lib/sha3/KeccakHashtimes4.c
-                sdith_cat3_short_cipherpow_opt/lib/sha3/KeccakSponge.c
-                sdith_cat3_short_cipherpow_opt/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat3_short_cipherpow_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat3_short_cipherpow_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_short_cipherpow_opt/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_short_cipherpow_opt/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat3_short_cipherpow_opt/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat3_short_cipherpow_opt/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat3_short_cipherpow_opt/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat3_short_cipherpow_opt OBJECT ${SDITH_CAT3_SHORT_CIPHERPOW_OPT_LIB_SOURCES})
-        target_include_directories(sdith_cat3_short_cipherpow_opt PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_opt
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_opt/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_opt/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_opt/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_opt/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_opt/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_opt/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_opt/lib/sha3/plain32)
-        target_compile_options(sdith_cat3_short_cipherpow_opt PRIVATE "-include" ${SDITH_CAT3_SHORT_CIPHERPOW_OPT_NAMESPACE_HEADER})
-
-        add_library(sdith_cat3_short_cipherpow_opt_glue OBJECT sig_sdith_cat3.c)
-        target_include_directories(sdith_cat3_short_cipherpow_opt_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_opt)
-        target_compile_options(sdith_cat3_short_cipherpow_opt_glue PRIVATE "-include" ${SDITH_CAT3_SHORT_CIPHERPOW_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_short_cipherpow_opt_glue PRIVATE OQS_SDITH_CAT3_SHORT_CIPHERPOW_OPT)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat3_short_cipherpow_opt>
-                $<TARGET_OBJECTS:sdith_cat3_short_cipherpow_opt_glue>)
+    sdith_add_variant(sdith_cat3_short_cipherpow_opt 3 98 208 8484 CAT3_SHORT_CIPHERPOW_PARAMETERS AVX2 sig_sdith_cat3.c OQS_SDITH_CAT3_SHORT_CIPHERPOW_OPT)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat3_short_cipherpow_ref)
-        set(SDITH_CAT3_SHORT_CIPHERPOW_REF_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_ref/namespace_sdith_cat3_short_cipherpow_ref.h)
-
-        set(SDITH_CAT3_SHORT_CIPHERPOW_REF_LIB_SOURCES
-                sdith_cat3_short_cipherpow_ref/commons.c
-                sdith_cat3_short_cipherpow_ref/ct_utils_avx2.c
-                sdith_cat3_short_cipherpow_ref/ct_utils.c
-                sdith_cat3_short_cipherpow_ref/gf128_avx2.c
-                sdith_cat3_short_cipherpow_ref/gf192_avx2.c
-                sdith_cat3_short_cipherpow_ref/gf256_avx2.c
-                sdith_cat3_short_cipherpow_ref/gf128.c
-                sdith_cat3_short_cipherpow_ref/gf192.c
-                sdith_cat3_short_cipherpow_ref/gf256.c
-                sdith_cat3_short_cipherpow_ref/ggm.c
-                sdith_cat3_short_cipherpow_ref/matrix_transpose_f2.c
-                sdith_cat3_short_cipherpow_ref/matrix_vector_products_f2_avx2.c
-                sdith_cat3_short_cipherpow_ref/matrix_vector_products_f2.c
-                sdith_cat3_short_cipherpow_ref/piop_circuit.c
-                sdith_cat3_short_cipherpow_ref/PQCgenKAt_sign.c
-                sdith_cat3_short_cipherpow_ref/rng.c
-                sdith_cat3_short_cipherpow_ref/rsd.c
-                sdith_cat3_short_cipherpow_ref/sdith_prng_avx2.c
-                sdith_cat3_short_cipherpow_ref/sdith_prng.c
-                sdith_cat3_short_cipherpow_ref/sdith_signature.c
-                sdith_cat3_short_cipherpow_ref/sdith_signature_parameters.c
-                sdith_cat3_short_cipherpow_ref/sign.c
-                sdith_cat3_short_cipherpow_ref/vole_expansion.c
-                sdith_cat3_short_cipherpow_ref/vole_parameters_avx2.c
-                sdith_cat3_short_cipherpow_ref/vole_parameters.c
-                sdith_cat3_short_cipherpow_ref/vole_to_piop.c
-                sdith_cat3_short_cipherpow_ref/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat3_short_cipherpow_ref/lib/aes/aes_ansi_ref.c
-                sdith_cat3_short_cipherpow_ref/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat3_short_cipherpow_ref/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat3_short_cipherpow_ref/lib/aes/rijndael256.c
-                sdith_cat3_short_cipherpow_ref/lib/aes/rijndael256_avx.c
-                sdith_cat3_short_cipherpow_ref/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat3_short_cipherpow_ref/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat3_short_cipherpow_ref/lib/sha3/KeccakHash.c
-                sdith_cat3_short_cipherpow_ref/lib/sha3/KeccakHashtimes4.c
-                sdith_cat3_short_cipherpow_ref/lib/sha3/KeccakSponge.c
-                sdith_cat3_short_cipherpow_ref/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat3_short_cipherpow_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat3_short_cipherpow_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_short_cipherpow_ref/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_short_cipherpow_ref/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat3_short_cipherpow_ref/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat3_short_cipherpow_ref/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat3_short_cipherpow_ref/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat3_short_cipherpow_ref OBJECT ${SDITH_CAT3_SHORT_CIPHERPOW_REF_LIB_SOURCES})
-        target_include_directories(sdith_cat3_short_cipherpow_ref PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_ref
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_ref/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_ref/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_ref/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_ref/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_ref/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_ref/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_ref/lib/sha3/plain32)
-        target_compile_options(sdith_cat3_short_cipherpow_ref PRIVATE "-include" ${SDITH_CAT3_SHORT_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_short_cipherpow_ref PRIVATE ONLY_REF_IMPLEMENTATION)
-
-        add_library(sdith_cat3_short_cipherpow_ref_glue OBJECT sig_sdith_cat3.c)
-        target_include_directories(sdith_cat3_short_cipherpow_ref_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_cipherpow_ref)
-        target_compile_options(sdith_cat3_short_cipherpow_ref_glue PRIVATE "-include" ${SDITH_CAT3_SHORT_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_short_cipherpow_ref_glue PRIVATE OQS_SDITH_CAT3_SHORT_CIPHERPOW_REF ONLY_REF_IMPLEMENTATION)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat3_short_cipherpow_ref>
-                $<TARGET_OBJECTS:sdith_cat3_short_cipherpow_ref_glue>)
+    sdith_add_variant(sdith_cat3_short_cipherpow_ref 3 98 208 8484 CAT3_SHORT_CIPHERPOW_PARAMETERS REF sig_sdith_cat3.c OQS_SDITH_CAT3_SHORT_CIPHERPOW_REF)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat3_short_opt)
-        set(SDITH_CAT3_SHORT_OPT_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_opt/namespace_sdith_cat3_short_opt.h)
-
-        set(SDITH_CAT3_SHORT_OPT_LIB_SOURCES
-                sdith_cat3_short_opt/commons.c
-                sdith_cat3_short_opt/ct_utils_avx2.c
-                sdith_cat3_short_opt/ct_utils.c
-                sdith_cat3_short_opt/gf128_avx2.c
-                sdith_cat3_short_opt/gf192_avx2.c
-                sdith_cat3_short_opt/gf256_avx2.c
-                sdith_cat3_short_opt/gf128.c
-                sdith_cat3_short_opt/gf192.c
-                sdith_cat3_short_opt/gf256.c
-                sdith_cat3_short_opt/ggm.c
-                sdith_cat3_short_opt/matrix_transpose_f2.c
-                sdith_cat3_short_opt/matrix_vector_products_f2_avx2.c
-                sdith_cat3_short_opt/matrix_vector_products_f2.c
-                sdith_cat3_short_opt/piop_circuit.c
-                sdith_cat3_short_opt/PQCgenKAt_sign.c
-                sdith_cat3_short_opt/rng.c
-                sdith_cat3_short_opt/rsd.c
-                sdith_cat3_short_opt/sdith_prng_avx2.c
-                sdith_cat3_short_opt/sdith_prng.c
-                sdith_cat3_short_opt/sdith_signature.c
-                sdith_cat3_short_opt/sdith_signature_parameters.c
-                sdith_cat3_short_opt/sign.c
-                sdith_cat3_short_opt/vole_expansion.c
-                sdith_cat3_short_opt/vole_parameters_avx2.c
-                sdith_cat3_short_opt/vole_parameters.c
-                sdith_cat3_short_opt/vole_to_piop.c
-                sdith_cat3_short_opt/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat3_short_opt/lib/aes/aes_ansi_ref.c
-                sdith_cat3_short_opt/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat3_short_opt/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat3_short_opt/lib/aes/rijndael256.c
-                sdith_cat3_short_opt/lib/aes/rijndael256_avx.c
-                sdith_cat3_short_opt/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat3_short_opt/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat3_short_opt/lib/sha3/KeccakHash.c
-                sdith_cat3_short_opt/lib/sha3/KeccakHashtimes4.c
-                sdith_cat3_short_opt/lib/sha3/KeccakSponge.c
-                sdith_cat3_short_opt/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat3_short_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat3_short_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_short_opt/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_short_opt/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat3_short_opt/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat3_short_opt/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat3_short_opt/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat3_short_opt OBJECT ${SDITH_CAT3_SHORT_OPT_LIB_SOURCES})
-        target_include_directories(sdith_cat3_short_opt PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_opt
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_opt/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_opt/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_opt/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_opt/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_opt/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_opt/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_opt/lib/sha3/plain32)
-        target_compile_options(sdith_cat3_short_opt PRIVATE "-include" ${SDITH_CAT3_SHORT_OPT_NAMESPACE_HEADER})
-
-        add_library(sdith_cat3_short_opt_glue OBJECT sig_sdith_cat3.c)
-        target_include_directories(sdith_cat3_short_opt_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_opt)
-        target_compile_options(sdith_cat3_short_opt_glue PRIVATE "-include" ${SDITH_CAT3_SHORT_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_short_opt_glue PRIVATE OQS_SDITH_CAT3_SHORT_OPT)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat3_short_opt>
-                $<TARGET_OBJECTS:sdith_cat3_short_opt_glue>)
+    sdith_add_variant(sdith_cat3_short_opt 3 98 208 8484 CAT3_SHORT_PARAMETERS AVX2 sig_sdith_cat3.c OQS_SDITH_CAT3_SHORT_OPT)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat3_short_ref)
-        set(SDITH_CAT3_SHORT_REF_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_ref/namespace_sdith_cat3_short_ref.h)
-
-        set(SDITH_CAT3_SHORT_REF_LIB_SOURCES
-                sdith_cat3_short_ref/commons.c
-                sdith_cat3_short_ref/ct_utils_avx2.c
-                sdith_cat3_short_ref/ct_utils.c
-                sdith_cat3_short_ref/gf128_avx2.c
-                sdith_cat3_short_ref/gf192_avx2.c
-                sdith_cat3_short_ref/gf256_avx2.c
-                sdith_cat3_short_ref/gf128.c
-                sdith_cat3_short_ref/gf192.c
-                sdith_cat3_short_ref/gf256.c
-                sdith_cat3_short_ref/ggm.c
-                sdith_cat3_short_ref/matrix_transpose_f2.c
-                sdith_cat3_short_ref/matrix_vector_products_f2_avx2.c
-                sdith_cat3_short_ref/matrix_vector_products_f2.c
-                sdith_cat3_short_ref/piop_circuit.c
-                sdith_cat3_short_ref/PQCgenKAt_sign.c
-                sdith_cat3_short_ref/rng.c
-                sdith_cat3_short_ref/rsd.c
-                sdith_cat3_short_ref/sdith_prng_avx2.c
-                sdith_cat3_short_ref/sdith_prng.c
-                sdith_cat3_short_ref/sdith_signature.c
-                sdith_cat3_short_ref/sdith_signature_parameters.c
-                sdith_cat3_short_ref/sign.c
-                sdith_cat3_short_ref/vole_expansion.c
-                sdith_cat3_short_ref/vole_parameters_avx2.c
-                sdith_cat3_short_ref/vole_parameters.c
-                sdith_cat3_short_ref/vole_to_piop.c
-                sdith_cat3_short_ref/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat3_short_ref/lib/aes/aes_ansi_ref.c
-                sdith_cat3_short_ref/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat3_short_ref/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat3_short_ref/lib/aes/rijndael256.c
-                sdith_cat3_short_ref/lib/aes/rijndael256_avx.c
-                sdith_cat3_short_ref/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat3_short_ref/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat3_short_ref/lib/sha3/KeccakHash.c
-                sdith_cat3_short_ref/lib/sha3/KeccakHashtimes4.c
-                sdith_cat3_short_ref/lib/sha3/KeccakSponge.c
-                sdith_cat3_short_ref/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat3_short_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat3_short_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_short_ref/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat3_short_ref/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat3_short_ref/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat3_short_ref/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat3_short_ref/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat3_short_ref OBJECT ${SDITH_CAT3_SHORT_REF_LIB_SOURCES})
-        target_include_directories(sdith_cat3_short_ref PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_ref
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_ref/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_ref/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_ref/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_ref/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_ref/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_ref/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_ref/lib/sha3/plain32)
-        target_compile_options(sdith_cat3_short_ref PRIVATE "-include" ${SDITH_CAT3_SHORT_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_short_ref PRIVATE ONLY_REF_IMPLEMENTATION)
-
-        add_library(sdith_cat3_short_ref_glue OBJECT sig_sdith_cat3.c)
-        target_include_directories(sdith_cat3_short_ref_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat3_short_ref)
-        target_compile_options(sdith_cat3_short_ref_glue PRIVATE "-include" ${SDITH_CAT3_SHORT_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat3_short_ref_glue PRIVATE OQS_SDITH_CAT3_SHORT_REF ONLY_REF_IMPLEMENTATION)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat3_short_ref>
-                $<TARGET_OBJECTS:sdith_cat3_short_ref_glue>)
+    sdith_add_variant(sdith_cat3_short_ref 3 98 208 8484 CAT3_SHORT_PARAMETERS REF sig_sdith_cat3.c OQS_SDITH_CAT3_SHORT_REF)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat5_fast_cipherpow_opt)
-        set(SDITH_CAT5_FAST_CIPHERPOW_OPT_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_opt/namespace_sdith_cat5_fast_cipherpow_opt.h)
-
-        set(SDITH_CAT5_FAST_CIPHERPOW_OPT_LIB_SOURCES
-                sdith_cat5_fast_cipherpow_opt/commons.c
-                sdith_cat5_fast_cipherpow_opt/ct_utils_avx2.c
-                sdith_cat5_fast_cipherpow_opt/ct_utils.c
-                sdith_cat5_fast_cipherpow_opt/gf128_avx2.c
-                sdith_cat5_fast_cipherpow_opt/gf192_avx2.c
-                sdith_cat5_fast_cipherpow_opt/gf256_avx2.c
-                sdith_cat5_fast_cipherpow_opt/gf128.c
-                sdith_cat5_fast_cipherpow_opt/gf192.c
-                sdith_cat5_fast_cipherpow_opt/gf256.c
-                sdith_cat5_fast_cipherpow_opt/ggm.c
-                sdith_cat5_fast_cipherpow_opt/matrix_transpose_f2.c
-                sdith_cat5_fast_cipherpow_opt/matrix_vector_products_f2_avx2.c
-                sdith_cat5_fast_cipherpow_opt/matrix_vector_products_f2.c
-                sdith_cat5_fast_cipherpow_opt/piop_circuit.c
-                sdith_cat5_fast_cipherpow_opt/PQCgenKAt_sign.c
-                sdith_cat5_fast_cipherpow_opt/rng.c
-                sdith_cat5_fast_cipherpow_opt/rsd.c
-                sdith_cat5_fast_cipherpow_opt/sdith_prng_avx2.c
-                sdith_cat5_fast_cipherpow_opt/sdith_prng.c
-                sdith_cat5_fast_cipherpow_opt/sdith_signature.c
-                sdith_cat5_fast_cipherpow_opt/sdith_signature_parameters.c
-                sdith_cat5_fast_cipherpow_opt/sign.c
-                sdith_cat5_fast_cipherpow_opt/vole_expansion.c
-                sdith_cat5_fast_cipherpow_opt/vole_parameters_avx2.c
-                sdith_cat5_fast_cipherpow_opt/vole_parameters.c
-                sdith_cat5_fast_cipherpow_opt/vole_to_piop.c
-                sdith_cat5_fast_cipherpow_opt/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat5_fast_cipherpow_opt/lib/aes/aes_ansi_ref.c
-                sdith_cat5_fast_cipherpow_opt/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat5_fast_cipherpow_opt/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat5_fast_cipherpow_opt/lib/aes/rijndael256.c
-                sdith_cat5_fast_cipherpow_opt/lib/aes/rijndael256_avx.c
-                sdith_cat5_fast_cipherpow_opt/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat5_fast_cipherpow_opt/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat5_fast_cipherpow_opt/lib/sha3/KeccakHash.c
-                sdith_cat5_fast_cipherpow_opt/lib/sha3/KeccakHashtimes4.c
-                sdith_cat5_fast_cipherpow_opt/lib/sha3/KeccakSponge.c
-                sdith_cat5_fast_cipherpow_opt/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat5_fast_cipherpow_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat5_fast_cipherpow_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_fast_cipherpow_opt/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_fast_cipherpow_opt/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat5_fast_cipherpow_opt/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat5_fast_cipherpow_opt/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat5_fast_cipherpow_opt/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat5_fast_cipherpow_opt OBJECT ${SDITH_CAT5_FAST_CIPHERPOW_OPT_LIB_SOURCES})
-        target_include_directories(sdith_cat5_fast_cipherpow_opt PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_opt
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_opt/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_opt/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_opt/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_opt/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_opt/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_opt/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_opt/lib/sha3/plain32)
-        target_compile_options(sdith_cat5_fast_cipherpow_opt PRIVATE "-include" ${SDITH_CAT5_FAST_CIPHERPOW_OPT_NAMESPACE_HEADER})
-
-        add_library(sdith_cat5_fast_cipherpow_opt_glue OBJECT sig_sdith_cat5.c)
-        target_include_directories(sdith_cat5_fast_cipherpow_opt_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_opt)
-        target_compile_options(sdith_cat5_fast_cipherpow_opt_glue PRIVATE "-include" ${SDITH_CAT5_FAST_CIPHERPOW_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_fast_cipherpow_opt_glue PRIVATE OQS_SDITH_CAT5_FAST_CIPHERPOW_OPT)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat5_fast_cipherpow_opt>
-                $<TARGET_OBJECTS:sdith_cat5_fast_cipherpow_opt_glue>)
+    sdith_add_variant(sdith_cat5_fast_cipherpow_opt 5 132 275 19144 CAT5_FAST_CIPHERPOW_PARAMETERS AVX2 sig_sdith_cat5.c OQS_SDITH_CAT5_FAST_CIPHERPOW_OPT)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat5_fast_cipherpow_ref)
-        set(SDITH_CAT5_FAST_CIPHERPOW_REF_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_ref/namespace_sdith_cat5_fast_cipherpow_ref.h)
-
-        set(SDITH_CAT5_FAST_CIPHERPOW_REF_LIB_SOURCES
-                sdith_cat5_fast_cipherpow_ref/commons.c
-                sdith_cat5_fast_cipherpow_ref/ct_utils_avx2.c
-                sdith_cat5_fast_cipherpow_ref/ct_utils.c
-                sdith_cat5_fast_cipherpow_ref/gf128_avx2.c
-                sdith_cat5_fast_cipherpow_ref/gf192_avx2.c
-                sdith_cat5_fast_cipherpow_ref/gf256_avx2.c
-                sdith_cat5_fast_cipherpow_ref/gf128.c
-                sdith_cat5_fast_cipherpow_ref/gf192.c
-                sdith_cat5_fast_cipherpow_ref/gf256.c
-                sdith_cat5_fast_cipherpow_ref/ggm.c
-                sdith_cat5_fast_cipherpow_ref/matrix_transpose_f2.c
-                sdith_cat5_fast_cipherpow_ref/matrix_vector_products_f2_avx2.c
-                sdith_cat5_fast_cipherpow_ref/matrix_vector_products_f2.c
-                sdith_cat5_fast_cipherpow_ref/piop_circuit.c
-                sdith_cat5_fast_cipherpow_ref/PQCgenKAt_sign.c
-                sdith_cat5_fast_cipherpow_ref/rng.c
-                sdith_cat5_fast_cipherpow_ref/rsd.c
-                sdith_cat5_fast_cipherpow_ref/sdith_prng_avx2.c
-                sdith_cat5_fast_cipherpow_ref/sdith_prng.c
-                sdith_cat5_fast_cipherpow_ref/sdith_signature.c
-                sdith_cat5_fast_cipherpow_ref/sdith_signature_parameters.c
-                sdith_cat5_fast_cipherpow_ref/sign.c
-                sdith_cat5_fast_cipherpow_ref/vole_expansion.c
-                sdith_cat5_fast_cipherpow_ref/vole_parameters_avx2.c
-                sdith_cat5_fast_cipherpow_ref/vole_parameters.c
-                sdith_cat5_fast_cipherpow_ref/vole_to_piop.c
-                sdith_cat5_fast_cipherpow_ref/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat5_fast_cipherpow_ref/lib/aes/aes_ansi_ref.c
-                sdith_cat5_fast_cipherpow_ref/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat5_fast_cipherpow_ref/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat5_fast_cipherpow_ref/lib/aes/rijndael256.c
-                sdith_cat5_fast_cipherpow_ref/lib/aes/rijndael256_avx.c
-                sdith_cat5_fast_cipherpow_ref/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat5_fast_cipherpow_ref/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat5_fast_cipherpow_ref/lib/sha3/KeccakHash.c
-                sdith_cat5_fast_cipherpow_ref/lib/sha3/KeccakHashtimes4.c
-                sdith_cat5_fast_cipherpow_ref/lib/sha3/KeccakSponge.c
-                sdith_cat5_fast_cipherpow_ref/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat5_fast_cipherpow_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat5_fast_cipherpow_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_fast_cipherpow_ref/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_fast_cipherpow_ref/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat5_fast_cipherpow_ref/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat5_fast_cipherpow_ref/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat5_fast_cipherpow_ref/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat5_fast_cipherpow_ref OBJECT ${SDITH_CAT5_FAST_CIPHERPOW_REF_LIB_SOURCES})
-        target_include_directories(sdith_cat5_fast_cipherpow_ref PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_ref
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_ref/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_ref/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_ref/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_ref/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_ref/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_ref/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_ref/lib/sha3/plain32)
-        target_compile_options(sdith_cat5_fast_cipherpow_ref PRIVATE "-include" ${SDITH_CAT5_FAST_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_fast_cipherpow_ref PRIVATE ONLY_REF_IMPLEMENTATION)
-
-        add_library(sdith_cat5_fast_cipherpow_ref_glue OBJECT sig_sdith_cat5.c)
-        target_include_directories(sdith_cat5_fast_cipherpow_ref_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_cipherpow_ref)
-        target_compile_options(sdith_cat5_fast_cipherpow_ref_glue PRIVATE "-include" ${SDITH_CAT5_FAST_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_fast_cipherpow_ref_glue PRIVATE OQS_SDITH_CAT5_FAST_CIPHERPOW_REF ONLY_REF_IMPLEMENTATION)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat5_fast_cipherpow_ref>
-                $<TARGET_OBJECTS:sdith_cat5_fast_cipherpow_ref_glue>)
+    sdith_add_variant(sdith_cat5_fast_cipherpow_ref 5 132 275 19144 CAT5_FAST_CIPHERPOW_PARAMETERS REF sig_sdith_cat5.c OQS_SDITH_CAT5_FAST_CIPHERPOW_REF)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat5_fast_opt)
-        set(SDITH_CAT5_FAST_OPT_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_opt/namespace_sdith_cat5_fast_opt.h)
-
-        set(SDITH_CAT5_FAST_OPT_LIB_SOURCES
-                sdith_cat5_fast_opt/commons.c
-                sdith_cat5_fast_opt/ct_utils_avx2.c
-                sdith_cat5_fast_opt/ct_utils.c
-                sdith_cat5_fast_opt/gf128_avx2.c
-                sdith_cat5_fast_opt/gf192_avx2.c
-                sdith_cat5_fast_opt/gf256_avx2.c
-                sdith_cat5_fast_opt/gf128.c
-                sdith_cat5_fast_opt/gf192.c
-                sdith_cat5_fast_opt/gf256.c
-                sdith_cat5_fast_opt/ggm.c
-                sdith_cat5_fast_opt/matrix_transpose_f2.c
-                sdith_cat5_fast_opt/matrix_vector_products_f2_avx2.c
-                sdith_cat5_fast_opt/matrix_vector_products_f2.c
-                sdith_cat5_fast_opt/piop_circuit.c
-                sdith_cat5_fast_opt/PQCgenKAt_sign.c
-                sdith_cat5_fast_opt/rng.c
-                sdith_cat5_fast_opt/rsd.c
-                sdith_cat5_fast_opt/sdith_prng_avx2.c
-                sdith_cat5_fast_opt/sdith_prng.c
-                sdith_cat5_fast_opt/sdith_signature.c
-                sdith_cat5_fast_opt/sdith_signature_parameters.c
-                sdith_cat5_fast_opt/sign.c
-                sdith_cat5_fast_opt/vole_expansion.c
-                sdith_cat5_fast_opt/vole_parameters_avx2.c
-                sdith_cat5_fast_opt/vole_parameters.c
-                sdith_cat5_fast_opt/vole_to_piop.c
-                sdith_cat5_fast_opt/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat5_fast_opt/lib/aes/aes_ansi_ref.c
-                sdith_cat5_fast_opt/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat5_fast_opt/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat5_fast_opt/lib/aes/rijndael256.c
-                sdith_cat5_fast_opt/lib/aes/rijndael256_avx.c
-                sdith_cat5_fast_opt/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat5_fast_opt/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat5_fast_opt/lib/sha3/KeccakHash.c
-                sdith_cat5_fast_opt/lib/sha3/KeccakHashtimes4.c
-                sdith_cat5_fast_opt/lib/sha3/KeccakSponge.c
-                sdith_cat5_fast_opt/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat5_fast_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat5_fast_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_fast_opt/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_fast_opt/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat5_fast_opt/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat5_fast_opt/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat5_fast_opt/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat5_fast_opt OBJECT ${SDITH_CAT5_FAST_OPT_LIB_SOURCES})
-        target_include_directories(sdith_cat5_fast_opt PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_opt
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_opt/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_opt/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_opt/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_opt/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_opt/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_opt/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_opt/lib/sha3/plain32)
-        target_compile_options(sdith_cat5_fast_opt PRIVATE "-include" ${SDITH_CAT5_FAST_OPT_NAMESPACE_HEADER})
-
-        add_library(sdith_cat5_fast_opt_glue OBJECT sig_sdith_cat5.c)
-        target_include_directories(sdith_cat5_fast_opt_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_opt)
-        target_compile_options(sdith_cat5_fast_opt_glue PRIVATE "-include" ${SDITH_CAT5_FAST_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_fast_opt_glue PRIVATE OQS_SDITH_CAT5_FAST_OPT)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat5_fast_opt>
-                $<TARGET_OBJECTS:sdith_cat5_fast_opt_glue>)
+    sdith_add_variant(sdith_cat5_fast_opt 5 132 275 19144 CAT5_FAST_PARAMETERS AVX2 sig_sdith_cat5.c OQS_SDITH_CAT5_FAST_OPT)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat5_fast_ref)
-        set(SDITH_CAT5_FAST_REF_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_ref/namespace_sdith_cat5_fast_ref.h)
-
-        set(SDITH_CAT5_FAST_REF_LIB_SOURCES
-                sdith_cat5_fast_ref/commons.c
-                sdith_cat5_fast_ref/ct_utils_avx2.c
-                sdith_cat5_fast_ref/ct_utils.c
-                sdith_cat5_fast_ref/gf128_avx2.c
-                sdith_cat5_fast_ref/gf192_avx2.c
-                sdith_cat5_fast_ref/gf256_avx2.c
-                sdith_cat5_fast_ref/gf128.c
-                sdith_cat5_fast_ref/gf192.c
-                sdith_cat5_fast_ref/gf256.c
-                sdith_cat5_fast_ref/ggm.c
-                sdith_cat5_fast_ref/matrix_transpose_f2.c
-                sdith_cat5_fast_ref/matrix_vector_products_f2_avx2.c
-                sdith_cat5_fast_ref/matrix_vector_products_f2.c
-                sdith_cat5_fast_ref/piop_circuit.c
-                sdith_cat5_fast_ref/PQCgenKAt_sign.c
-                sdith_cat5_fast_ref/rng.c
-                sdith_cat5_fast_ref/rsd.c
-                sdith_cat5_fast_ref/sdith_prng_avx2.c
-                sdith_cat5_fast_ref/sdith_prng.c
-                sdith_cat5_fast_ref/sdith_signature.c
-                sdith_cat5_fast_ref/sdith_signature_parameters.c
-                sdith_cat5_fast_ref/sign.c
-                sdith_cat5_fast_ref/vole_expansion.c
-                sdith_cat5_fast_ref/vole_parameters_avx2.c
-                sdith_cat5_fast_ref/vole_parameters.c
-                sdith_cat5_fast_ref/vole_to_piop.c
-                sdith_cat5_fast_ref/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat5_fast_ref/lib/aes/aes_ansi_ref.c
-                sdith_cat5_fast_ref/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat5_fast_ref/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat5_fast_ref/lib/aes/rijndael256.c
-                sdith_cat5_fast_ref/lib/aes/rijndael256_avx.c
-                sdith_cat5_fast_ref/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat5_fast_ref/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat5_fast_ref/lib/sha3/KeccakHash.c
-                sdith_cat5_fast_ref/lib/sha3/KeccakHashtimes4.c
-                sdith_cat5_fast_ref/lib/sha3/KeccakSponge.c
-                sdith_cat5_fast_ref/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat5_fast_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat5_fast_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_fast_ref/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_fast_ref/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat5_fast_ref/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat5_fast_ref/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat5_fast_ref/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat5_fast_ref OBJECT ${SDITH_CAT5_FAST_REF_LIB_SOURCES})
-        target_include_directories(sdith_cat5_fast_ref PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_ref
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_ref/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_ref/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_ref/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_ref/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_ref/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_ref/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_ref/lib/sha3/plain32)
-        target_compile_options(sdith_cat5_fast_ref PRIVATE "-include" ${SDITH_CAT5_FAST_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_fast_ref PRIVATE ONLY_REF_IMPLEMENTATION)
-
-        add_library(sdith_cat5_fast_ref_glue OBJECT sig_sdith_cat5.c)
-        target_include_directories(sdith_cat5_fast_ref_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_fast_ref)
-        target_compile_options(sdith_cat5_fast_ref_glue PRIVATE "-include" ${SDITH_CAT5_FAST_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_fast_ref_glue PRIVATE OQS_SDITH_CAT5_FAST_REF ONLY_REF_IMPLEMENTATION)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat5_fast_ref>
-                $<TARGET_OBJECTS:sdith_cat5_fast_ref_glue>)
+    sdith_add_variant(sdith_cat5_fast_ref 5 132 275 19144 CAT5_FAST_PARAMETERS REF sig_sdith_cat5.c OQS_SDITH_CAT5_FAST_REF)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat5_short_cipherpow_opt)
-        set(SDITH_CAT5_SHORT_CIPHERPOW_OPT_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_opt/namespace_sdith_cat5_short_cipherpow_opt.h)
-
-        set(SDITH_CAT5_SHORT_CIPHERPOW_OPT_LIB_SOURCES
-                sdith_cat5_short_cipherpow_opt/commons.c
-                sdith_cat5_short_cipherpow_opt/ct_utils_avx2.c
-                sdith_cat5_short_cipherpow_opt/ct_utils.c
-                sdith_cat5_short_cipherpow_opt/gf128_avx2.c
-                sdith_cat5_short_cipherpow_opt/gf192_avx2.c
-                sdith_cat5_short_cipherpow_opt/gf256_avx2.c
-                sdith_cat5_short_cipherpow_opt/gf128.c
-                sdith_cat5_short_cipherpow_opt/gf192.c
-                sdith_cat5_short_cipherpow_opt/gf256.c
-                sdith_cat5_short_cipherpow_opt/ggm.c
-                sdith_cat5_short_cipherpow_opt/matrix_transpose_f2.c
-                sdith_cat5_short_cipherpow_opt/matrix_vector_products_f2_avx2.c
-                sdith_cat5_short_cipherpow_opt/matrix_vector_products_f2.c
-                sdith_cat5_short_cipherpow_opt/piop_circuit.c
-                sdith_cat5_short_cipherpow_opt/PQCgenKAt_sign.c
-                sdith_cat5_short_cipherpow_opt/rng.c
-                sdith_cat5_short_cipherpow_opt/rsd.c
-                sdith_cat5_short_cipherpow_opt/sdith_prng_avx2.c
-                sdith_cat5_short_cipherpow_opt/sdith_prng.c
-                sdith_cat5_short_cipherpow_opt/sdith_signature.c
-                sdith_cat5_short_cipherpow_opt/sdith_signature_parameters.c
-                sdith_cat5_short_cipherpow_opt/sign.c
-                sdith_cat5_short_cipherpow_opt/vole_expansion.c
-                sdith_cat5_short_cipherpow_opt/vole_parameters_avx2.c
-                sdith_cat5_short_cipherpow_opt/vole_parameters.c
-                sdith_cat5_short_cipherpow_opt/vole_to_piop.c
-                sdith_cat5_short_cipherpow_opt/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat5_short_cipherpow_opt/lib/aes/aes_ansi_ref.c
-                sdith_cat5_short_cipherpow_opt/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat5_short_cipherpow_opt/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat5_short_cipherpow_opt/lib/aes/rijndael256.c
-                sdith_cat5_short_cipherpow_opt/lib/aes/rijndael256_avx.c
-                sdith_cat5_short_cipherpow_opt/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat5_short_cipherpow_opt/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat5_short_cipherpow_opt/lib/sha3/KeccakHash.c
-                sdith_cat5_short_cipherpow_opt/lib/sha3/KeccakHashtimes4.c
-                sdith_cat5_short_cipherpow_opt/lib/sha3/KeccakSponge.c
-                sdith_cat5_short_cipherpow_opt/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat5_short_cipherpow_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat5_short_cipherpow_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_short_cipherpow_opt/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_short_cipherpow_opt/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat5_short_cipherpow_opt/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat5_short_cipherpow_opt/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat5_short_cipherpow_opt/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat5_short_cipherpow_opt OBJECT ${SDITH_CAT5_SHORT_CIPHERPOW_OPT_LIB_SOURCES})
-        target_include_directories(sdith_cat5_short_cipherpow_opt PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_opt
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_opt/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_opt/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_opt/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_opt/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_opt/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_opt/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_opt/lib/sha3/plain32)
-        target_compile_options(sdith_cat5_short_cipherpow_opt PRIVATE "-include" ${SDITH_CAT5_SHORT_CIPHERPOW_OPT_NAMESPACE_HEADER})
-
-        add_library(sdith_cat5_short_cipherpow_opt_glue OBJECT sig_sdith_cat5.c)
-        target_include_directories(sdith_cat5_short_cipherpow_opt_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_opt)
-        target_compile_options(sdith_cat5_short_cipherpow_opt_glue PRIVATE "-include" ${SDITH_CAT5_SHORT_CIPHERPOW_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_short_cipherpow_opt_glue PRIVATE OQS_SDITH_CAT5_SHORT_CIPHERPOW_OPT)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat5_short_cipherpow_opt>
-                $<TARGET_OBJECTS:sdith_cat5_short_cipherpow_opt_glue>)
+    sdith_add_variant(sdith_cat5_short_cipherpow_opt 5 132 275 15147 CAT5_SHORT_CIPHERPOW_PARAMETERS AVX2 sig_sdith_cat5.c OQS_SDITH_CAT5_SHORT_CIPHERPOW_OPT)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat5_short_cipherpow_ref)
-        set(SDITH_CAT5_SHORT_CIPHERPOW_REF_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_ref/namespace_sdith_cat5_short_cipherpow_ref.h)
-
-        set(SDITH_CAT5_SHORT_CIPHERPOW_REF_LIB_SOURCES
-                sdith_cat5_short_cipherpow_ref/commons.c
-                sdith_cat5_short_cipherpow_ref/ct_utils_avx2.c
-                sdith_cat5_short_cipherpow_ref/ct_utils.c
-                sdith_cat5_short_cipherpow_ref/gf128_avx2.c
-                sdith_cat5_short_cipherpow_ref/gf192_avx2.c
-                sdith_cat5_short_cipherpow_ref/gf256_avx2.c
-                sdith_cat5_short_cipherpow_ref/gf128.c
-                sdith_cat5_short_cipherpow_ref/gf192.c
-                sdith_cat5_short_cipherpow_ref/gf256.c
-                sdith_cat5_short_cipherpow_ref/ggm.c
-                sdith_cat5_short_cipherpow_ref/matrix_transpose_f2.c
-                sdith_cat5_short_cipherpow_ref/matrix_vector_products_f2_avx2.c
-                sdith_cat5_short_cipherpow_ref/matrix_vector_products_f2.c
-                sdith_cat5_short_cipherpow_ref/piop_circuit.c
-                sdith_cat5_short_cipherpow_ref/PQCgenKAt_sign.c
-                sdith_cat5_short_cipherpow_ref/rng.c
-                sdith_cat5_short_cipherpow_ref/rsd.c
-                sdith_cat5_short_cipherpow_ref/sdith_prng_avx2.c
-                sdith_cat5_short_cipherpow_ref/sdith_prng.c
-                sdith_cat5_short_cipherpow_ref/sdith_signature.c
-                sdith_cat5_short_cipherpow_ref/sdith_signature_parameters.c
-                sdith_cat5_short_cipherpow_ref/sign.c
-                sdith_cat5_short_cipherpow_ref/vole_expansion.c
-                sdith_cat5_short_cipherpow_ref/vole_parameters_avx2.c
-                sdith_cat5_short_cipherpow_ref/vole_parameters.c
-                sdith_cat5_short_cipherpow_ref/vole_to_piop.c
-                sdith_cat5_short_cipherpow_ref/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat5_short_cipherpow_ref/lib/aes/aes_ansi_ref.c
-                sdith_cat5_short_cipherpow_ref/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat5_short_cipherpow_ref/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat5_short_cipherpow_ref/lib/aes/rijndael256.c
-                sdith_cat5_short_cipherpow_ref/lib/aes/rijndael256_avx.c
-                sdith_cat5_short_cipherpow_ref/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat5_short_cipherpow_ref/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat5_short_cipherpow_ref/lib/sha3/KeccakHash.c
-                sdith_cat5_short_cipherpow_ref/lib/sha3/KeccakHashtimes4.c
-                sdith_cat5_short_cipherpow_ref/lib/sha3/KeccakSponge.c
-                sdith_cat5_short_cipherpow_ref/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat5_short_cipherpow_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat5_short_cipherpow_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_short_cipherpow_ref/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_short_cipherpow_ref/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat5_short_cipherpow_ref/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat5_short_cipherpow_ref/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat5_short_cipherpow_ref/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat5_short_cipherpow_ref OBJECT ${SDITH_CAT5_SHORT_CIPHERPOW_REF_LIB_SOURCES})
-        target_include_directories(sdith_cat5_short_cipherpow_ref PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_ref
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_ref/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_ref/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_ref/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_ref/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_ref/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_ref/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_ref/lib/sha3/plain32)
-        target_compile_options(sdith_cat5_short_cipherpow_ref PRIVATE "-include" ${SDITH_CAT5_SHORT_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_short_cipherpow_ref PRIVATE ONLY_REF_IMPLEMENTATION)
-
-        add_library(sdith_cat5_short_cipherpow_ref_glue OBJECT sig_sdith_cat5.c)
-        target_include_directories(sdith_cat5_short_cipherpow_ref_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_cipherpow_ref)
-        target_compile_options(sdith_cat5_short_cipherpow_ref_glue PRIVATE "-include" ${SDITH_CAT5_SHORT_CIPHERPOW_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_short_cipherpow_ref_glue PRIVATE OQS_SDITH_CAT5_SHORT_CIPHERPOW_REF ONLY_REF_IMPLEMENTATION)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat5_short_cipherpow_ref>
-                $<TARGET_OBJECTS:sdith_cat5_short_cipherpow_ref_glue>)
+    sdith_add_variant(sdith_cat5_short_cipherpow_ref 5 132 275 15147 CAT5_SHORT_CIPHERPOW_PARAMETERS REF sig_sdith_cat5.c OQS_SDITH_CAT5_SHORT_CIPHERPOW_REF)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat5_short_opt)
-        set(SDITH_CAT5_SHORT_OPT_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_opt/namespace_sdith_cat5_short_opt.h)
-
-        set(SDITH_CAT5_SHORT_OPT_LIB_SOURCES
-                sdith_cat5_short_opt/commons.c
-                sdith_cat5_short_opt/ct_utils_avx2.c
-                sdith_cat5_short_opt/ct_utils.c
-                sdith_cat5_short_opt/gf128_avx2.c
-                sdith_cat5_short_opt/gf192_avx2.c
-                sdith_cat5_short_opt/gf256_avx2.c
-                sdith_cat5_short_opt/gf128.c
-                sdith_cat5_short_opt/gf192.c
-                sdith_cat5_short_opt/gf256.c
-                sdith_cat5_short_opt/ggm.c
-                sdith_cat5_short_opt/matrix_transpose_f2.c
-                sdith_cat5_short_opt/matrix_vector_products_f2_avx2.c
-                sdith_cat5_short_opt/matrix_vector_products_f2.c
-                sdith_cat5_short_opt/piop_circuit.c
-                sdith_cat5_short_opt/PQCgenKAt_sign.c
-                sdith_cat5_short_opt/rng.c
-                sdith_cat5_short_opt/rsd.c
-                sdith_cat5_short_opt/sdith_prng_avx2.c
-                sdith_cat5_short_opt/sdith_prng.c
-                sdith_cat5_short_opt/sdith_signature.c
-                sdith_cat5_short_opt/sdith_signature_parameters.c
-                sdith_cat5_short_opt/sign.c
-                sdith_cat5_short_opt/vole_expansion.c
-                sdith_cat5_short_opt/vole_parameters_avx2.c
-                sdith_cat5_short_opt/vole_parameters.c
-                sdith_cat5_short_opt/vole_to_piop.c
-                sdith_cat5_short_opt/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat5_short_opt/lib/aes/aes_ansi_ref.c
-                sdith_cat5_short_opt/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat5_short_opt/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat5_short_opt/lib/aes/rijndael256.c
-                sdith_cat5_short_opt/lib/aes/rijndael256_avx.c
-                sdith_cat5_short_opt/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat5_short_opt/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat5_short_opt/lib/sha3/KeccakHash.c
-                sdith_cat5_short_opt/lib/sha3/KeccakHashtimes4.c
-                sdith_cat5_short_opt/lib/sha3/KeccakSponge.c
-                sdith_cat5_short_opt/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat5_short_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat5_short_opt/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_short_opt/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_short_opt/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat5_short_opt/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat5_short_opt/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat5_short_opt/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat5_short_opt OBJECT ${SDITH_CAT5_SHORT_OPT_LIB_SOURCES})
-        target_include_directories(sdith_cat5_short_opt PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_opt
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_opt/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_opt/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_opt/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_opt/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_opt/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_opt/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_opt/lib/sha3/plain32)
-        target_compile_options(sdith_cat5_short_opt PRIVATE "-include" ${SDITH_CAT5_SHORT_OPT_NAMESPACE_HEADER})
-
-        add_library(sdith_cat5_short_opt_glue OBJECT sig_sdith_cat5.c)
-        target_include_directories(sdith_cat5_short_opt_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_opt)
-        target_compile_options(sdith_cat5_short_opt_glue PRIVATE "-include" ${SDITH_CAT5_SHORT_OPT_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_short_opt_glue PRIVATE OQS_SDITH_CAT5_SHORT_OPT)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat5_short_opt>
-                $<TARGET_OBJECTS:sdith_cat5_short_opt_glue>)
+    sdith_add_variant(sdith_cat5_short_opt 5 132 275 15147 CAT5_SHORT_PARAMETERS AVX2 sig_sdith_cat5.c OQS_SDITH_CAT5_SHORT_OPT)
 endif()
 
 if(OQS_ENABLE_SIG_sdith_cat5_short_ref)
-        set(SDITH_CAT5_SHORT_REF_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_ref/namespace_sdith_cat5_short_ref.h)
-
-        set(SDITH_CAT5_SHORT_REF_LIB_SOURCES
-                sdith_cat5_short_ref/commons.c
-                sdith_cat5_short_ref/ct_utils_avx2.c
-                sdith_cat5_short_ref/ct_utils.c
-                sdith_cat5_short_ref/gf128_avx2.c
-                sdith_cat5_short_ref/gf192_avx2.c
-                sdith_cat5_short_ref/gf256_avx2.c
-                sdith_cat5_short_ref/gf128.c
-                sdith_cat5_short_ref/gf192.c
-                sdith_cat5_short_ref/gf256.c
-                sdith_cat5_short_ref/ggm.c
-                sdith_cat5_short_ref/matrix_transpose_f2.c
-                sdith_cat5_short_ref/matrix_vector_products_f2_avx2.c
-                sdith_cat5_short_ref/matrix_vector_products_f2.c
-                sdith_cat5_short_ref/piop_circuit.c
-                sdith_cat5_short_ref/PQCgenKAt_sign.c
-                sdith_cat5_short_ref/rng.c
-                sdith_cat5_short_ref/rsd.c
-                sdith_cat5_short_ref/sdith_prng_avx2.c
-                sdith_cat5_short_ref/sdith_prng.c
-                sdith_cat5_short_ref/sdith_signature.c
-                sdith_cat5_short_ref/sdith_signature_parameters.c
-                sdith_cat5_short_ref/sign.c
-                sdith_cat5_short_ref/vole_expansion.c
-                sdith_cat5_short_ref/vole_parameters_avx2.c
-                sdith_cat5_short_ref/vole_parameters.c
-                sdith_cat5_short_ref/vole_to_piop.c
-                sdith_cat5_short_ref/lib/aes/aes_ansi_littleendian_ref.c
-                sdith_cat5_short_ref/lib/aes/aes_ansi_ref.c
-                sdith_cat5_short_ref/lib/aes/aes128_ctrle_special_avx2.c
-                sdith_cat5_short_ref/lib/aes/aes128_ctrle_special_ref.c
-                sdith_cat5_short_ref/lib/aes/rijndael256.c
-                sdith_cat5_short_ref/lib/aes/rijndael256_avx.c
-                sdith_cat5_short_ref/lib/aes/rijndael256_ctrle_special_avx2.c
-                sdith_cat5_short_ref/lib/aes/rijndael256_ctrle_special_ref.c
-                sdith_cat5_short_ref/lib/sha3/KeccakHash.c
-                sdith_cat5_short_ref/lib/sha3/KeccakHashtimes4.c
-                sdith_cat5_short_ref/lib/sha3/KeccakSponge.c
-                sdith_cat5_short_ref/lib/sha3/KeccakSpongetimes4.c
-                sdith_cat5_short_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-on1.c
-                sdith_cat5_short_ref/lib/sha3/armv8a-neon/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_short_ref/lib/sha3/avx2/KeccakP-1600-times4-SIMD256.c
-                sdith_cat5_short_ref/lib/sha3/opt64/KeccakP-1600-opt64.c
-                sdith_cat5_short_ref/lib/sha3/opt64/KeccakP-1600-times4-on1.c
-                sdith_cat5_short_ref/lib/sha3/plain32/KeccakP-1600-inplace32BI.c
-                sdith_cat5_short_ref/lib/sha3/plain32/KeccakP-1600-times4-on1.c
-        )
-
-        add_library(sdith_cat5_short_ref OBJECT ${SDITH_CAT5_SHORT_REF_LIB_SOURCES})
-        target_include_directories(sdith_cat5_short_ref PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_ref
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_ref/lib
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_ref/lib/aes
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_ref/lib/sha3
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_ref/lib/sha3/armv8a-neon
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_ref/lib/sha3/avx2
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_ref/lib/sha3/opt64
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_ref/lib/sha3/plain32)
-        target_compile_options(sdith_cat5_short_ref PRIVATE "-include" ${SDITH_CAT5_SHORT_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_short_ref PRIVATE ONLY_REF_IMPLEMENTATION)
-
-        add_library(sdith_cat5_short_ref_glue OBJECT sig_sdith_cat5.c)
-        target_include_directories(sdith_cat5_short_ref_glue PRIVATE
-                ${CMAKE_CURRENT_LIST_DIR}
-                ${CMAKE_CURRENT_LIST_DIR}/sdith_cat5_short_ref)
-        target_compile_options(sdith_cat5_short_ref_glue PRIVATE "-include" ${SDITH_CAT5_SHORT_REF_NAMESPACE_HEADER})
-        target_compile_definitions(sdith_cat5_short_ref_glue PRIVATE OQS_SDITH_CAT5_SHORT_REF ONLY_REF_IMPLEMENTATION)
-
-        set(_SDITH_OBJS ${_SDITH_OBJS}
-                $<TARGET_OBJECTS:sdith_cat5_short_ref>
-                $<TARGET_OBJECTS:sdith_cat5_short_ref_glue>)
+    sdith_add_variant(sdith_cat5_short_ref 5 132 275 15147 CAT5_SHORT_PARAMETERS REF sig_sdith_cat5.c OQS_SDITH_CAT5_SHORT_REF)
 endif()
 
-list(REMOVE_DUPLICATES _SDITH_LIBS)
-
 set(SDITH_OBJS ${_SDITH_OBJS} PARENT_SCOPE)
-set(SDITH_LIBS ${_SDITH_LIBS} PARENT_SCOPE)
