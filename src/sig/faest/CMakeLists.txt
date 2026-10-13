@@ -1,583 +1,379 @@
 # SPDX-License-Identifier: MIT
+# FAEST Round-3 REF + AVX2 integration in the existing liboqs FAEST layout.
+#
+# No helper adapter/namespace source files are added at this directory level.
+# Existing OQS_ENABLE_SIG_faest_* options build both explicit implementations.
+
+enable_language(CXX)
 
 set(_FAEST_OBJS "")
-set(_FAEST_LIBS "")
 
-# FAEST-128s bundled dependencies (namespaced to avoid conflicts)
-set(FAEST_128S_LIB_SOURCES
-    faest_128s/lib/KeccakHash.c
-    faest_128s/lib/KeccakP-1600-opt64.c
-    faest_128s/lib/KeccakSponge.c
+set(FAEST_REF_PRIVATE_SYMBOLS
+    faest_verify
+    faest_sign
+    faest_get_paramset
+    H0_final
+    H0_init
+    H0_update
+    H1_final
+    H1_init
+    H1_update
+    H2_0_final
+    H2_1_final
+    H2_2_final
+    H2_3_final
+    H2_copy
+    H2_init
+    H2_update
+    H2_update_u32_le
+    H3_final
+    H3_init
+    H3_update
+    H4
+    H5
+    aes128_init_round_keys
+    aes192_init_round_keys
+    aes256_init_round_keys
+    aes_128_prover
+    aes_128_verifier
+    aes_192_prover
+    aes_192_verifier
+    aes_256_prover
+    aes_256_verifier
+    aes_extend_witness_7
+    alloc_pointer_array
+    bavc_clear
+    bavc_commit
+    bavc_open
+    bavc_reconstruct
+    bf128_byte_combine
+    bf128_byte_combine_bits
+    bf128_byte_combine_sq
+    bf128_mul
+    bf128_mul_64_inplace
+    bf128_mul_inplace
+    bf128_sq_bit
+    bf128_sq_bit_inplace
+    bf128_square
+    bf128_sum_poly_bits
+    bf192_byte_combine
+    bf192_byte_combine_bits
+    bf192_byte_combine_sq
+    bf192_mul
+    bf192_mul_64_inplace
+    bf192_mul_inplace
+    bf192_sq_bit
+    bf192_sq_bit_inplace
+    bf192_square
+    bf192_sum_poly_bits
+    bf256_byte_combine
+    bf256_byte_combine_bits
+    bf256_byte_combine_sq
+    bf256_mul
+    bf256_mul_64_inplace
+    bf256_mul_inplace
+    bf256_sq_bit
+    bf256_sq_bit_inplace
+    bf256_square
+    bf256_sum_poly_bits
+    bf2_matrix_mul_tbl
+    bf2_poly_mul
+    bf2_poly_reduce
+    bf384_mul_128_inplace
+    bf576_mul_192_inplace
+    bf768_mul_256_inplace
+    bf8_inv
+    bf8_mul
+    bf8_square
+    decode_all_chall_3
+    expand_key
+    extract_bit_slice
+    free_pointer_array
+    generic_aes_ecb_encrypt
+    generic_aes_ecb_free
+    generic_aes_ecb_new
+    leaf_hash_128
+    leaf_hash_192
+    leaf_hash_256
+    masked_xor_u8_array
+    owf_128
+    owf_192
+    owf_256
+    owf_em_128
+    owf_em_192
+    owf_em_256
+    prg
+    prg_2_lambda
+    prg_4_lambda
+    rijndael192_encrypt_block
+    rijndael192_init_round_keys
+    rijndael256_encrypt_block
+    rijndael256_init_round_keys
+    transpose_matrix
+    vole_commit
+    vole_hash
+    vole_hash_128
+    vole_hash_192
+    vole_hash_256
+    vole_reconstruct
+    xor_u8_array
+    xor_u8_array_inplace
+    zk_hash_128_7_finalize
+    zk_hash_128_7_init
+    zk_hash_128_7_raise_and_update
+    zk_hash_128_7_update
+    zk_hash_128_finalize
+    zk_hash_128_init
+    zk_hash_128_update
+    zk_hash_192_7_finalize
+    zk_hash_192_7_init
+    zk_hash_192_7_raise_and_update
+    zk_hash_192_7_update
+    zk_hash_192_finalize
+    zk_hash_192_init
+    zk_hash_192_update
+    zk_hash_256_7_finalize
+    zk_hash_256_7_init
+    zk_hash_256_7_raise_and_update
+    zk_hash_256_7_update
+    zk_hash_256_finalize
+    zk_hash_256_init
+    zk_hash_256_update
+    rand_bytes
 )
 
-# FAEST-128f bundled dependencies (namespaced to avoid conflicts)
-set(FAEST_128F_LIB_SOURCES
-    faest_128f/lib/KeccakHash.c
-    faest_128f/lib/KeccakP-1600-opt64.c
-    faest_128f/lib/KeccakSponge.c
+set(FAEST_AVX2_KECCAK_SYMBOLS
+    KeccakF1600_AVX2_FastLoop_Absorb
+    KeccakF1600times4_AVX2_FastLoop_Absorb
+    KeccakP1600_12rounds_AVX2_FastLoop_Absorb
+    KeccakP1600_AVX2_AddByte
+    KeccakP1600_AVX2_AddBytes
+    KeccakP1600_AVX2_ExtractAndAddBytes
+    KeccakP1600_AVX2_ExtractBytes
+    KeccakP1600_AVX2_Initialize
+    KeccakP1600_AVX2_OverwriteBytes
+    KeccakP1600_AVX2_OverwriteWithZeroes
+    KeccakP1600_AVX2_Permute_12rounds
+    KeccakP1600_AVX2_Permute_24rounds
+    KeccakP1600_AVX2_Permute_Nrounds
+    KeccakP1600times4_12rounds_AVX2_FastLoop_Absorb
+    KeccakP1600times4_AVX2_AddBytes
+    KeccakP1600times4_AVX2_AddLanesAll
+    KeccakP1600times4_AVX2_ExtractAndAddBytes
+    KeccakP1600times4_AVX2_ExtractAndAddLanesAll
+    KeccakP1600times4_AVX2_ExtractBytes
+    KeccakP1600times4_AVX2_ExtractLanesAll
+    KeccakP1600times4_AVX2_InitializeAll
+    KeccakP1600times4_AVX2_KT128ProcessLeaves
+    KeccakP1600times4_AVX2_KT256ProcessLeaves
+    KeccakP1600times4_AVX2_KravatteCompress
+    KeccakP1600times4_AVX2_KravatteExpand
+    KeccakP1600times4_AVX2_OverwriteBytes
+    KeccakP1600times4_AVX2_OverwriteLanesAll
+    KeccakP1600times4_AVX2_OverwriteWithZeroes
+    KeccakP1600times4_AVX2_PermuteAll_12rounds
+    KeccakP1600times4_AVX2_PermuteAll_24rounds
+    KeccakP1600times4_AVX2_PermuteAll_4rounds
+    KeccakP1600times4_AVX2_PermuteAll_6rounds
+    KeccakWidth1600_DuplexInitialize
+    KeccakWidth1600_Duplexing
+    KeccakWidth1600_DuplexingFeedPartialInput
+    KeccakWidth1600_DuplexingFeedZeroes
+    KeccakWidth1600_DuplexingGetFurtherOutput
+    KeccakWidth1600_DuplexingGetFurtherOutputAndAdd
+    KeccakWidth1600_DuplexingOverwritePartialInput
+    KeccakWidth1600_DuplexingOverwriteWithZeroes
+    KeccakWidth1600_Sponge
+    KeccakWidth1600_SpongeAbsorb
+    KeccakWidth1600_SpongeAbsorbLastFewBits
+    KeccakWidth1600_SpongeInitialize
+    KeccakWidth1600_SpongeSqueeze
+    KeccakWidth1600x4_SpongeAbsorb
+    KeccakWidth1600x4_SpongeAbsorbLastFewBits
+    KeccakWidth1600x4_SpongeInitialize
+    KeccakWidth1600x4_SpongeSqueeze
+    Keccak_HashFinal
+    Keccak_HashFinal_x4
+    Keccak_HashInitialize
+    Keccak_HashInitialize_x4
+    Keccak_HashSqueeze
+    Keccak_HashSqueeze_x4
+    Keccak_HashUpdate
+    Keccak_HashUpdate_x4
+    SHA3_224
+    SHA3_256
+    SHA3_384
+    SHA3_512
+    SHAKE128
+    SHAKE256
+    SHAKE_OD_Clone
+    SHAKE_OD_CloneCompact
+    SHAKE_OD_Duplexing
+    SHAKE_OD_DuplexingFast
+    SHAKE_OD_DuplexingFastOnlyIn
+    SHAKE_OD_DuplexingFastOnlyOut
+    SHAKE_OD_Initialize
+    SHAKE_OD_Squeezing
+    TurboSHAKE_OD_Clone
+    TurboSHAKE_OD_CloneCompact
+    TurboSHAKE_OD_Duplexing
+    TurboSHAKE_OD_DuplexingFast
+    TurboSHAKE_OD_DuplexingFastOnlyIn
+    TurboSHAKE_OD_DuplexingFastOnlyOut
+    TurboSHAKE_OD_Initialize
+    TurboSHAKE_OD_Squeezing
 )
 
-# FAEST-192s bundled dependencies (namespaced to avoid conflicts)
-set(FAEST_192S_LIB_SOURCES
-    faest_192s/lib/KeccakHash.c
-    faest_192s/lib/KeccakP-1600-opt64.c
-    faest_192s/lib/KeccakSponge.c
-)
+function(faest_add_ref PARAM WRAPPER SELECTOR)
+    set(BASE_DIR ${CMAKE_CURRENT_LIST_DIR}/faest_${PARAM}/ref)
+    file(GLOB REF_SOURCES CONFIGURE_DEPENDS "${BASE_DIR}/*.c")
 
-# FAEST-192f bundled dependencies (namespaced to avoid conflicts)
-set(FAEST_192F_LIB_SOURCES
-    faest_192f/lib/KeccakHash.c
-    faest_192f/lib/KeccakP-1600-opt64.c
-    faest_192f/lib/KeccakSponge.c
-)
+    add_library(faest_${PARAM}_ref_core OBJECT ${REF_SOURCES})
+    target_include_directories(faest_${PARAM}_ref_core PRIVATE ${BASE_DIR})
+    target_compile_definitions(faest_${PARAM}_ref_core PRIVATE
+        OQS=1
+        NDEBUG=1
+        crypto_sign_keypair=oqs_sig_private_faest_${PARAM}_ref_crypto_sign_keypair
+        crypto_sign=oqs_sig_private_faest_${PARAM}_ref_crypto_sign
+        crypto_sign_open=oqs_sig_private_faest_${PARAM}_ref_crypto_sign_open)
 
-# FAEST-256s bundled dependencies (namespaced to avoid conflicts)
-set(FAEST_256S_LIB_SOURCES
-    faest_256s/lib/KeccakHash.c
-    faest_256s/lib/KeccakP-1600-opt64.c
-    faest_256s/lib/KeccakSponge.c
-)
+    foreach(sym IN LISTS FAEST_REF_PRIVATE_SYMBOLS)
+        target_compile_definitions(faest_${PARAM}_ref_core PRIVATE
+            "${sym}=oqs_sig_private_faest_${PARAM}_ref_${sym}")
+    endforeach()
 
-# FAEST-256f bundled dependencies (namespaced to avoid conflicts)
-set(FAEST_256F_LIB_SOURCES
-    faest_256f/lib/KeccakHash.c
-    faest_256f/lib/KeccakP-1600-opt64.c
-    faest_256f/lib/KeccakSponge.c
-)
+    if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+        if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
+            target_compile_options(faest_${PARAM}_ref_core PRIVATE
+                -O3 -march=x86-64 -mtune=generic -fno-strict-aliasing -Wno-psabi)
+        else()
+            target_compile_options(faest_${PARAM}_ref_core PRIVATE
+                -O3 -fno-strict-aliasing -Wno-psabi)
+        endif()
+    endif()
 
-# FAEST-EM-128s bundled dependencies (namespaced to avoid conflicts)
-set(FAEST_EM_128S_LIB_SOURCES
-    faest_em_128s/lib/KeccakHash.c
-    faest_em_128s/lib/KeccakP-1600-opt64.c
-    faest_em_128s/lib/KeccakSponge.c
-)
+    add_library(faest_${PARAM}_ref_glue OBJECT ${WRAPPER})
+    target_compile_definitions(faest_${PARAM}_ref_glue PRIVATE ${SELECTOR})
 
-# FAEST-EM-128f bundled dependencies (namespaced to avoid conflicts)
-set(FAEST_EM_128F_LIB_SOURCES
-    faest_em_128f/lib/KeccakHash.c
-    faest_em_128f/lib/KeccakP-1600-opt64.c
-    faest_em_128f/lib/KeccakSponge.c
-)
+    set(_FAEST_OBJS ${_FAEST_OBJS}
+        $<TARGET_OBJECTS:faest_${PARAM}_ref_core>
+        $<TARGET_OBJECTS:faest_${PARAM}_ref_glue>
+        PARENT_SCOPE)
+endfunction()
 
-# FAEST-EM-192s bundled dependencies (namespaced to avoid conflicts)
-set(FAEST_EM_192S_LIB_SOURCES
-    faest_em_192s/lib/KeccakHash.c
-    faest_em_192s/lib/KeccakP-1600-opt64.c
-    faest_em_192s/lib/KeccakSponge.c
-)
+function(faest_add_avx2 PARAM WRAPPER SELECTOR)
+    if(NOT CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
+        message(FATAL_ERROR "FAEST-${PARAM}-AVX2 requires x86-64")
+    endif()
 
-# FAEST-EM-192f bundled dependencies (namespaced to avoid conflicts)
-set(FAEST_EM_192F_LIB_SOURCES
-    faest_em_192f/lib/KeccakHash.c
-    faest_em_192f/lib/KeccakP-1600-opt64.c
-    faest_em_192f/lib/KeccakSponge.c
-)
+    set(BASE_DIR ${CMAKE_CURRENT_LIST_DIR}/faest_${PARAM}/avx2)
+    file(GLOB_RECURSE AVX2_SOURCES CONFIGURE_DEPENDS
+        "${BASE_DIR}/*.c"
+        "${BASE_DIR}/*.cpp"
+        "${BASE_DIR}/*.s")
+    list(FILTER AVX2_SOURCES EXCLUDE REGEX "/avx2/aes_impl\\.cpp$")
 
-# FAEST-EM-256s bundled dependencies (namespaced to avoid conflicts)
-set(FAEST_EM_256S_LIB_SOURCES
-    faest_em_256s/lib/KeccakHash.c
-    faest_em_256s/lib/KeccakP-1600-opt64.c
-    faest_em_256s/lib/KeccakSponge.c
-)
+    add_library(faest_${PARAM}_avx2_core OBJECT ${AVX2_SOURCES})
+    target_include_directories(faest_${PARAM}_avx2_core PRIVATE
+        ${BASE_DIR}
+        ${BASE_DIR}/sha3)
+    target_compile_features(faest_${PARAM}_avx2_core PRIVATE cxx_std_23)
+    target_compile_definitions(faest_${PARAM}_avx2_core PRIVATE
+        NDEBUG=1
+        faest=oqs_sig_private_faest_${PARAM}_avx2_cpp
+        crypto_sign_keypair=oqs_sig_private_faest_${PARAM}_avx2_crypto_sign_keypair
+        crypto_sign=oqs_sig_private_faest_${PARAM}_avx2_crypto_sign
+        crypto_sign_open=oqs_sig_private_faest_${PARAM}_avx2_crypto_sign_open
+        rand_bytes=oqs_sig_private_faest_${PARAM}_avx2_rand_bytes)
 
-# FAEST-EM-256f bundled dependencies (namespaced to avoid conflicts)
-set(FAEST_EM_256F_LIB_SOURCES
-    faest_em_256f/lib/KeccakHash.c
-    faest_em_256f/lib/KeccakP-1600-opt64.c
-    faest_em_256f/lib/KeccakSponge.c
-)
+    foreach(sym IN LISTS FAEST_AVX2_KECCAK_SYMBOLS)
+        target_compile_definitions(faest_${PARAM}_avx2_core PRIVATE
+            "${sym}=oqs_sig_private_faest_${PARAM}_avx2_${sym}")
+    endforeach()
+
+    if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" AND
+       CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(faest_${PARAM}_avx2_core PRIVATE
+            $<$<COMPILE_LANGUAGE:C,CXX>:-O3>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-march=x86-64>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-mtune=generic>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-mavx2>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-maes>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-mpclmul>
+            $<$<COMPILE_LANGUAGE:C,CXX>:-fno-strict-aliasing>
+            $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
+            $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
+    else()
+        message(FATAL_ERROR "FAEST AVX2 integration expects GCC/Clang-style x86 flags")
+    endif()
+
+    add_library(faest_${PARAM}_avx2_glue OBJECT ${WRAPPER})
+    target_compile_definitions(faest_${PARAM}_avx2_glue PRIVATE ${SELECTOR})
+
+    set(_FAEST_OBJS ${_FAEST_OBJS}
+        $<TARGET_OBJECTS:faest_${PARAM}_avx2_core>
+        $<TARGET_OBJECTS:faest_${PARAM}_avx2_glue>
+        PARENT_SCOPE)
+endfunction()
 
 if(OQS_ENABLE_SIG_faest_128s)
-    set(FAEST_128S_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/faest_128s/namespace_faest_128s.h)
-
-    set(FAEST_128S_SOURCES
-        ${FAEST_128S_LIB_SOURCES}
-        faest_128s/aes.c
-        faest_128s/bavc.c
-        faest_128s/compat.c
-        faest_128s/cpu.c
-        faest_128s/crypto_sign.c
-        faest_128s/faest_128s.c
-        faest_128s/faest_aes_128.c
-        faest_128s/faest_aes_192.c
-        faest_128s/faest_aes_256.c
-        faest_128s/faest_impl.c
-        faest_128s/fields.c
-        faest_128s/instances.c
-        faest_128s/owf.c
-        faest_128s/random_oracle.c
-        faest_128s/randomness.c
-        faest_128s/universal_hashing.c
-        faest_128s/utils.c
-        faest_128s/vole.c
-    )
-
-    add_library(faest_128s_ref OBJECT ${FAEST_128S_SOURCES})
-    target_include_directories(faest_128s_ref PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/faest_128s
-        ${CMAKE_CURRENT_LIST_DIR}/faest_128s/lib)
-    target_compile_options(faest_128s_ref PRIVATE "-include" ${FAEST_128S_NAMESPACE_HEADER})
-    target_compile_definitions(faest_128s_ref PRIVATE OQS_FAEST_DISABLE_VECTOR_ATTR)
-
-    add_library(faest_128s_glue OBJECT sig_faest_128s.c)
-    target_include_directories(faest_128s_glue PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/faest_128s)
-    target_compile_options(faest_128s_glue PRIVATE "-include" ${FAEST_128S_NAMESPACE_HEADER})
-
-    set(_FAEST_OBJS ${_FAEST_OBJS} $<TARGET_OBJECTS:faest_128s_ref> $<TARGET_OBJECTS:faest_128s_glue>)
+    faest_add_ref(128s sig_faest_128s.c OQS_FAEST_128S_REF)
+    faest_add_avx2(128s sig_faest_128s.c OQS_FAEST_128S_AVX2)
 endif()
 
 if(OQS_ENABLE_SIG_faest_128f)
-    set(FAEST_128F_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/faest_128f/namespace_faest_128f.h)
-
-    set(FAEST_128F_SOURCES
-        ${FAEST_128F_LIB_SOURCES}
-        faest_128f/aes.c
-        faest_128f/bavc.c
-        faest_128f/compat.c
-        faest_128f/cpu.c
-        faest_128f/crypto_sign.c
-        faest_128f/faest_128f.c
-        faest_128f/faest_aes_128.c
-        faest_128f/faest_aes_192.c
-        faest_128f/faest_aes_256.c
-        faest_128f/faest_impl.c
-        faest_128f/fields.c
-        faest_128f/instances.c
-        faest_128f/owf.c
-        faest_128f/random_oracle.c
-        faest_128f/randomness.c
-        faest_128f/universal_hashing.c
-        faest_128f/utils.c
-        faest_128f/vole.c
-    )
-
-    add_library(faest_128f_ref OBJECT ${FAEST_128F_SOURCES})
-    target_include_directories(faest_128f_ref PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/faest_128f
-        ${CMAKE_CURRENT_LIST_DIR}/faest_128f/lib)
-    target_compile_options(faest_128f_ref PRIVATE "-include" ${FAEST_128F_NAMESPACE_HEADER})
-    target_compile_definitions(faest_128f_ref PRIVATE OQS_FAEST_DISABLE_VECTOR_ATTR)
-
-    add_library(faest_128f_glue OBJECT sig_faest_128f.c)
-    target_include_directories(faest_128f_glue PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/faest_128f)
-    target_compile_options(faest_128f_glue PRIVATE "-include" ${FAEST_128F_NAMESPACE_HEADER})
-
-    set(_FAEST_OBJS ${_FAEST_OBJS} $<TARGET_OBJECTS:faest_128f_ref> $<TARGET_OBJECTS:faest_128f_glue>)
+    faest_add_ref(128f sig_faest_128f.c OQS_FAEST_128F_REF)
+    faest_add_avx2(128f sig_faest_128f.c OQS_FAEST_128F_AVX2)
 endif()
 
 if(OQS_ENABLE_SIG_faest_192s)
-    set(FAEST_192S_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/faest_192s/namespace_faest_192s.h)
-
-    set(FAEST_192S_SOURCES
-        ${FAEST_192S_LIB_SOURCES}
-        faest_192s/aes.c
-        faest_192s/bavc.c
-        faest_192s/compat.c
-        faest_192s/cpu.c
-        faest_192s/crypto_sign.c
-        faest_192s/faest_192s.c
-        faest_192s/faest_aes_128.c
-        faest_192s/faest_aes_192.c
-        faest_192s/faest_aes_256.c
-        faest_192s/faest_impl.c
-        faest_192s/fields.c
-        faest_192s/instances.c
-        faest_192s/owf.c
-        faest_192s/random_oracle.c
-        faest_192s/randomness.c
-        faest_192s/universal_hashing.c
-        faest_192s/utils.c
-        faest_192s/vole.c
-    )
-
-    add_library(faest_192s_ref OBJECT ${FAEST_192S_SOURCES})
-    target_include_directories(faest_192s_ref PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/faest_192s
-        ${CMAKE_CURRENT_LIST_DIR}/faest_192s/lib)
-    target_compile_options(faest_192s_ref PRIVATE "-include" ${FAEST_192S_NAMESPACE_HEADER})
-    target_compile_definitions(faest_192s_ref PRIVATE OQS_FAEST_DISABLE_VECTOR_ATTR)
-
-    add_library(faest_192s_glue OBJECT sig_faest_192s.c)
-    target_include_directories(faest_192s_glue PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/faest_192s)
-    target_compile_options(faest_192s_glue PRIVATE "-include" ${FAEST_192S_NAMESPACE_HEADER})
-
-    set(_FAEST_OBJS ${_FAEST_OBJS} $<TARGET_OBJECTS:faest_192s_ref> $<TARGET_OBJECTS:faest_192s_glue>)
+    faest_add_ref(192s sig_faest_192s.c OQS_FAEST_192S_REF)
+    faest_add_avx2(192s sig_faest_192s.c OQS_FAEST_192S_AVX2)
 endif()
 
 if(OQS_ENABLE_SIG_faest_192f)
-    set(FAEST_192F_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/faest_192f/namespace_faest_192f.h)
-
-    set(FAEST_192F_SOURCES
-        ${FAEST_192F_LIB_SOURCES}
-        faest_192f/aes.c
-        faest_192f/bavc.c
-        faest_192f/compat.c
-        faest_192f/cpu.c
-        faest_192f/crypto_sign.c
-        faest_192f/faest_192f.c
-        faest_192f/faest_aes_128.c
-        faest_192f/faest_aes_192.c
-        faest_192f/faest_aes_256.c
-        faest_192f/faest_impl.c
-        faest_192f/fields.c
-        faest_192f/instances.c
-        faest_192f/owf.c
-        faest_192f/random_oracle.c
-        faest_192f/randomness.c
-        faest_192f/universal_hashing.c
-        faest_192f/utils.c
-        faest_192f/vole.c
-    )
-
-    add_library(faest_192f_ref OBJECT ${FAEST_192F_SOURCES})
-    target_include_directories(faest_192f_ref PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/faest_192f
-        ${CMAKE_CURRENT_LIST_DIR}/faest_192f/lib)
-    target_compile_options(faest_192f_ref PRIVATE "-include" ${FAEST_192F_NAMESPACE_HEADER})
-    target_compile_definitions(faest_192f_ref PRIVATE OQS_FAEST_DISABLE_VECTOR_ATTR)
-
-    add_library(faest_192f_glue OBJECT sig_faest_192f.c)
-    target_include_directories(faest_192f_glue PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/faest_192f)
-    target_compile_options(faest_192f_glue PRIVATE "-include" ${FAEST_192F_NAMESPACE_HEADER})
-
-    set(_FAEST_OBJS ${_FAEST_OBJS} $<TARGET_OBJECTS:faest_192f_ref> $<TARGET_OBJECTS:faest_192f_glue>)
+    faest_add_ref(192f sig_faest_192f.c OQS_FAEST_192F_REF)
+    faest_add_avx2(192f sig_faest_192f.c OQS_FAEST_192F_AVX2)
 endif()
 
 if(OQS_ENABLE_SIG_faest_256s)
-    set(FAEST_256S_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/faest_256s/namespace_faest_256s.h)
-
-    set(FAEST_256S_SOURCES
-        ${FAEST_256S_LIB_SOURCES}
-        faest_256s/aes.c
-        faest_256s/bavc.c
-        faest_256s/compat.c
-        faest_256s/cpu.c
-        faest_256s/crypto_sign.c
-        faest_256s/faest_256s.c
-        faest_256s/faest_aes_128.c
-        faest_256s/faest_aes_192.c
-        faest_256s/faest_aes_256.c
-        faest_256s/faest_impl.c
-        faest_256s/fields.c
-        faest_256s/instances.c
-        faest_256s/owf.c
-        faest_256s/random_oracle.c
-        faest_256s/randomness.c
-        faest_256s/universal_hashing.c
-        faest_256s/utils.c
-        faest_256s/vole.c
-    )
-
-    add_library(faest_256s_ref OBJECT ${FAEST_256S_SOURCES})
-    target_include_directories(faest_256s_ref PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/faest_256s
-        ${CMAKE_CURRENT_LIST_DIR}/faest_256s/lib)
-    target_compile_options(faest_256s_ref PRIVATE "-include" ${FAEST_256S_NAMESPACE_HEADER})
-    target_compile_definitions(faest_256s_ref PRIVATE OQS_FAEST_DISABLE_VECTOR_ATTR)
-
-    add_library(faest_256s_glue OBJECT sig_faest_256s.c)
-    target_include_directories(faest_256s_glue PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/faest_256s)
-    target_compile_options(faest_256s_glue PRIVATE "-include" ${FAEST_256S_NAMESPACE_HEADER})
-
-    set(_FAEST_OBJS ${_FAEST_OBJS} $<TARGET_OBJECTS:faest_256s_ref> $<TARGET_OBJECTS:faest_256s_glue>)
+    faest_add_ref(256s sig_faest_256s.c OQS_FAEST_256S_REF)
+    faest_add_avx2(256s sig_faest_256s.c OQS_FAEST_256S_AVX2)
 endif()
 
 if(OQS_ENABLE_SIG_faest_256f)
-    set(FAEST_256F_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/faest_256f/namespace_faest_256f.h)
-
-    set(FAEST_256F_SOURCES
-        ${FAEST_256F_LIB_SOURCES}
-        faest_256f/aes.c
-        faest_256f/bavc.c
-        faest_256f/compat.c
-        faest_256f/cpu.c
-        faest_256f/crypto_sign.c
-        faest_256f/faest_256f.c
-        faest_256f/faest_aes_128.c
-        faest_256f/faest_aes_192.c
-        faest_256f/faest_aes_256.c
-        faest_256f/faest_impl.c
-        faest_256f/fields.c
-        faest_256f/instances.c
-        faest_256f/owf.c
-        faest_256f/random_oracle.c
-        faest_256f/randomness.c
-        faest_256f/universal_hashing.c
-        faest_256f/utils.c
-        faest_256f/vole.c
-    )
-
-    add_library(faest_256f_ref OBJECT ${FAEST_256F_SOURCES})
-    target_include_directories(faest_256f_ref PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/faest_256f
-        ${CMAKE_CURRENT_LIST_DIR}/faest_256f/lib)
-    target_compile_options(faest_256f_ref PRIVATE "-include" ${FAEST_256F_NAMESPACE_HEADER})
-    target_compile_definitions(faest_256f_ref PRIVATE OQS_FAEST_DISABLE_VECTOR_ATTR)
-
-    add_library(faest_256f_glue OBJECT sig_faest_256f.c)
-    target_include_directories(faest_256f_glue PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/faest_256f)
-    target_compile_options(faest_256f_glue PRIVATE "-include" ${FAEST_256F_NAMESPACE_HEADER})
-
-    set(_FAEST_OBJS ${_FAEST_OBJS} $<TARGET_OBJECTS:faest_256f_ref> $<TARGET_OBJECTS:faest_256f_glue>)
+    faest_add_ref(256f sig_faest_256f.c OQS_FAEST_256F_REF)
+    faest_add_avx2(256f sig_faest_256f.c OQS_FAEST_256F_AVX2)
 endif()
 
 if(OQS_ENABLE_SIG_faest_em_128s)
-    set(FAEST_EM_128S_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/faest_em_128s/namespace_faest_em_128s.h)
-
-    set(FAEST_EM_128S_SOURCES
-        ${FAEST_EM_128S_LIB_SOURCES}
-        faest_em_128s/aes.c
-        faest_em_128s/bavc.c
-        faest_em_128s/compat.c
-        faest_em_128s/cpu.c
-        faest_em_128s/crypto_sign.c
-        faest_em_128s/faest_em_128s.c
-        faest_em_128s/faest_aes_128.c
-        faest_em_128s/faest_aes_192.c
-        faest_em_128s/faest_aes_256.c
-        faest_em_128s/faest_impl.c
-        faest_em_128s/fields.c
-        faest_em_128s/instances.c
-        faest_em_128s/owf.c
-        faest_em_128s/random_oracle.c
-        faest_em_128s/randomness.c
-        faest_em_128s/universal_hashing.c
-        faest_em_128s/utils.c
-        faest_em_128s/vole.c
-    )
-
-    add_library(faest_em_128s_ref OBJECT ${FAEST_EM_128S_SOURCES})
-    target_include_directories(faest_em_128s_ref PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_128s
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_128s/lib)
-    target_compile_options(faest_em_128s_ref PRIVATE "-include" ${FAEST_EM_128S_NAMESPACE_HEADER})
-    target_compile_definitions(faest_em_128s_ref PRIVATE OQS_FAEST_DISABLE_VECTOR_ATTR)
-
-    add_library(faest_em_128s_glue OBJECT sig_faest_em_128s.c)
-    target_include_directories(faest_em_128s_glue PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_128s)
-    target_compile_options(faest_em_128s_glue PRIVATE "-include" ${FAEST_EM_128S_NAMESPACE_HEADER})
-
-    set(_FAEST_OBJS ${_FAEST_OBJS} $<TARGET_OBJECTS:faest_em_128s_ref> $<TARGET_OBJECTS:faest_em_128s_glue>)
+    faest_add_ref(em_128s sig_faest_em_128s.c OQS_FAEST_EM_128S_REF)
+    faest_add_avx2(em_128s sig_faest_em_128s.c OQS_FAEST_EM_128S_AVX2)
 endif()
 
 if(OQS_ENABLE_SIG_faest_em_128f)
-    set(FAEST_EM_128F_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/faest_em_128f/namespace_faest_em_128f.h)
-
-    set(FAEST_EM_128F_SOURCES
-        ${FAEST_EM_128F_LIB_SOURCES}
-        faest_em_128f/aes.c
-        faest_em_128f/bavc.c
-        faest_em_128f/compat.c
-        faest_em_128f/cpu.c
-        faest_em_128f/crypto_sign.c
-        faest_em_128f/faest_em_128f.c
-        faest_em_128f/faest_aes_128.c
-        faest_em_128f/faest_aes_192.c
-        faest_em_128f/faest_aes_256.c
-        faest_em_128f/faest_impl.c
-        faest_em_128f/fields.c
-        faest_em_128f/instances.c
-        faest_em_128f/owf.c
-        faest_em_128f/random_oracle.c
-        faest_em_128f/randomness.c
-        faest_em_128f/universal_hashing.c
-        faest_em_128f/utils.c
-        faest_em_128f/vole.c
-    )
-
-    add_library(faest_em_128f_ref OBJECT ${FAEST_EM_128F_SOURCES})
-    target_include_directories(faest_em_128f_ref PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_128f
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_128f/lib)
-    target_compile_options(faest_em_128f_ref PRIVATE "-include" ${FAEST_EM_128F_NAMESPACE_HEADER})
-    target_compile_definitions(faest_em_128f_ref PRIVATE OQS_FAEST_DISABLE_VECTOR_ATTR)
-
-    add_library(faest_em_128f_glue OBJECT sig_faest_em_128f.c)
-    target_include_directories(faest_em_128f_glue PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_128f)
-    target_compile_options(faest_em_128f_glue PRIVATE "-include" ${FAEST_EM_128F_NAMESPACE_HEADER})
-
-    set(_FAEST_OBJS ${_FAEST_OBJS} $<TARGET_OBJECTS:faest_em_128f_ref> $<TARGET_OBJECTS:faest_em_128f_glue>)
+    faest_add_ref(em_128f sig_faest_em_128f.c OQS_FAEST_EM_128F_REF)
+    faest_add_avx2(em_128f sig_faest_em_128f.c OQS_FAEST_EM_128F_AVX2)
 endif()
 
 if(OQS_ENABLE_SIG_faest_em_192s)
-    set(FAEST_EM_192S_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/faest_em_192s/namespace_faest_em_192s.h)
-
-    set(FAEST_EM_192S_SOURCES
-        ${FAEST_EM_192S_LIB_SOURCES}
-        faest_em_192s/aes.c
-        faest_em_192s/bavc.c
-        faest_em_192s/compat.c
-        faest_em_192s/cpu.c
-        faest_em_192s/crypto_sign.c
-        faest_em_192s/faest_em_192s.c
-        faest_em_192s/faest_aes_128.c
-        faest_em_192s/faest_aes_192.c
-        faest_em_192s/faest_aes_256.c
-        faest_em_192s/faest_impl.c
-        faest_em_192s/fields.c
-        faest_em_192s/instances.c
-        faest_em_192s/owf.c
-        faest_em_192s/random_oracle.c
-        faest_em_192s/randomness.c
-        faest_em_192s/universal_hashing.c
-        faest_em_192s/utils.c
-        faest_em_192s/vole.c
-    )
-
-    add_library(faest_em_192s_ref OBJECT ${FAEST_EM_192S_SOURCES})
-    target_include_directories(faest_em_192s_ref PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_192s
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_192s/lib)
-    target_compile_options(faest_em_192s_ref PRIVATE "-include" ${FAEST_EM_192S_NAMESPACE_HEADER})
-    target_compile_definitions(faest_em_192s_ref PRIVATE OQS_FAEST_DISABLE_VECTOR_ATTR)
-
-    add_library(faest_em_192s_glue OBJECT sig_faest_em_192s.c)
-    target_include_directories(faest_em_192s_glue PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_192s)
-    target_compile_options(faest_em_192s_glue PRIVATE "-include" ${FAEST_EM_192S_NAMESPACE_HEADER})
-
-    set(_FAEST_OBJS ${_FAEST_OBJS} $<TARGET_OBJECTS:faest_em_192s_ref> $<TARGET_OBJECTS:faest_em_192s_glue>)
+    faest_add_ref(em_192s sig_faest_em_192s.c OQS_FAEST_EM_192S_REF)
+    faest_add_avx2(em_192s sig_faest_em_192s.c OQS_FAEST_EM_192S_AVX2)
 endif()
 
 if(OQS_ENABLE_SIG_faest_em_192f)
-    set(FAEST_EM_192F_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/faest_em_192f/namespace_faest_em_192f.h)
-
-    set(FAEST_EM_192F_SOURCES
-        ${FAEST_EM_192F_LIB_SOURCES}
-        faest_em_192f/aes.c
-        faest_em_192f/bavc.c
-        faest_em_192f/compat.c
-        faest_em_192f/cpu.c
-        faest_em_192f/crypto_sign.c
-        faest_em_192f/faest_em_192f.c
-        faest_em_192f/faest_aes_128.c
-        faest_em_192f/faest_aes_192.c
-        faest_em_192f/faest_aes_256.c
-        faest_em_192f/faest_impl.c
-        faest_em_192f/fields.c
-        faest_em_192f/instances.c
-        faest_em_192f/owf.c
-        faest_em_192f/random_oracle.c
-        faest_em_192f/randomness.c
-        faest_em_192f/universal_hashing.c
-        faest_em_192f/utils.c
-        faest_em_192f/vole.c
-    )
-
-    add_library(faest_em_192f_ref OBJECT ${FAEST_EM_192F_SOURCES})
-    target_include_directories(faest_em_192f_ref PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_192f
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_192f/lib)
-    target_compile_options(faest_em_192f_ref PRIVATE "-include" ${FAEST_EM_192F_NAMESPACE_HEADER})
-    target_compile_definitions(faest_em_192f_ref PRIVATE OQS_FAEST_DISABLE_VECTOR_ATTR)
-
-    add_library(faest_em_192f_glue OBJECT sig_faest_em_192f.c)
-    target_include_directories(faest_em_192f_glue PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_192f)
-    target_compile_options(faest_em_192f_glue PRIVATE "-include" ${FAEST_EM_192F_NAMESPACE_HEADER})
-
-    set(_FAEST_OBJS ${_FAEST_OBJS} $<TARGET_OBJECTS:faest_em_192f_ref> $<TARGET_OBJECTS:faest_em_192f_glue>)
+    faest_add_ref(em_192f sig_faest_em_192f.c OQS_FAEST_EM_192F_REF)
+    faest_add_avx2(em_192f sig_faest_em_192f.c OQS_FAEST_EM_192F_AVX2)
 endif()
 
 if(OQS_ENABLE_SIG_faest_em_256s)
-    set(FAEST_EM_256S_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/faest_em_256s/namespace_faest_em_256s.h)
-
-    set(FAEST_EM_256S_SOURCES
-        ${FAEST_EM_256S_LIB_SOURCES}
-        faest_em_256s/aes.c
-        faest_em_256s/bavc.c
-        faest_em_256s/compat.c
-        faest_em_256s/cpu.c
-        faest_em_256s/crypto_sign.c
-        faest_em_256s/faest_em_256s.c
-        faest_em_256s/faest_aes_128.c
-        faest_em_256s/faest_aes_192.c
-        faest_em_256s/faest_aes_256.c
-        faest_em_256s/faest_impl.c
-        faest_em_256s/fields.c
-        faest_em_256s/instances.c
-        faest_em_256s/owf.c
-        faest_em_256s/random_oracle.c
-        faest_em_256s/randomness.c
-        faest_em_256s/universal_hashing.c
-        faest_em_256s/utils.c
-        faest_em_256s/vole.c
-    )
-
-    add_library(faest_em_256s_ref OBJECT ${FAEST_EM_256S_SOURCES})
-    target_include_directories(faest_em_256s_ref PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_256s
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_256s/lib)
-    target_compile_options(faest_em_256s_ref PRIVATE "-include" ${FAEST_EM_256S_NAMESPACE_HEADER})
-    target_compile_definitions(faest_em_256s_ref PRIVATE OQS_FAEST_DISABLE_VECTOR_ATTR)
-
-    add_library(faest_em_256s_glue OBJECT sig_faest_em_256s.c)
-    target_include_directories(faest_em_256s_glue PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_256s)
-    target_compile_options(faest_em_256s_glue PRIVATE "-include" ${FAEST_EM_256S_NAMESPACE_HEADER})
-
-    set(_FAEST_OBJS ${_FAEST_OBJS} $<TARGET_OBJECTS:faest_em_256s_ref> $<TARGET_OBJECTS:faest_em_256s_glue>)
+    faest_add_ref(em_256s sig_faest_em_256s.c OQS_FAEST_EM_256S_REF)
+    faest_add_avx2(em_256s sig_faest_em_256s.c OQS_FAEST_EM_256S_AVX2)
 endif()
 
 if(OQS_ENABLE_SIG_faest_em_256f)
-    set(FAEST_EM_256F_NAMESPACE_HEADER ${CMAKE_CURRENT_LIST_DIR}/faest_em_256f/namespace_faest_em_256f.h)
-
-    set(FAEST_EM_256F_SOURCES
-        ${FAEST_EM_256F_LIB_SOURCES}
-        faest_em_256f/aes.c
-        faest_em_256f/bavc.c
-        faest_em_256f/compat.c
-        faest_em_256f/cpu.c
-        faest_em_256f/crypto_sign.c
-        faest_em_256f/faest_em_256f.c
-        faest_em_256f/faest_aes_128.c
-        faest_em_256f/faest_aes_192.c
-        faest_em_256f/faest_aes_256.c
-        faest_em_256f/faest_impl.c
-        faest_em_256f/fields.c
-        faest_em_256f/instances.c
-        faest_em_256f/owf.c
-        faest_em_256f/random_oracle.c
-        faest_em_256f/randomness.c
-        faest_em_256f/universal_hashing.c
-        faest_em_256f/utils.c
-        faest_em_256f/vole.c
-    )
-
-    add_library(faest_em_256f_ref OBJECT ${FAEST_EM_256F_SOURCES})
-    target_include_directories(faest_em_256f_ref PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_256f
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_256f/lib)
-    target_compile_options(faest_em_256f_ref PRIVATE "-include" ${FAEST_EM_256F_NAMESPACE_HEADER})
-    target_compile_definitions(faest_em_256f_ref PRIVATE OQS_FAEST_DISABLE_VECTOR_ATTR)
-
-    add_library(faest_em_256f_glue OBJECT sig_faest_em_256f.c)
-    target_include_directories(faest_em_256f_glue PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/faest_em_256f)
-    target_compile_options(faest_em_256f_glue PRIVATE "-include" ${FAEST_EM_256F_NAMESPACE_HEADER})
-
-    set(_FAEST_OBJS ${_FAEST_OBJS} $<TARGET_OBJECTS:faest_em_256f_ref> $<TARGET_OBJECTS:faest_em_256f_glue>)
+    faest_add_ref(em_256f sig_faest_em_256f.c OQS_FAEST_EM_256F_REF)
+    faest_add_avx2(em_256f sig_faest_em_256f.c OQS_FAEST_EM_256F_AVX2)
 endif()
 
 set(FAEST_OBJS ${_FAEST_OBJS} PARENT_SCOPE)
-set(FAEST_LIBS ${_FAEST_LIBS} PARENT_SCOPE)

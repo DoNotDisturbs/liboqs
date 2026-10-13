@@ -1,128 +1,167 @@
+// SPDX-License-Identifier: MIT
 /**
  * \file sig_faest_em_128f.c
- * \brief Implementation of OQS_SIG wrapper for FAEST- em_128f
+ * \brief liboqs wrapper for FAEST-EM-128f Round-3 REF/AVX2.
  */
 
 #include <oqs/sig_faest.h>
+#include <oqs/common.h>
 
-#if defined(OQS_ENABLE_SIG_faest_em_128f)
-
-#include "faest_em_128f/api.h"
 #include <stddef.h>
-#include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 
-OQS_SIG *OQS_SIG_faest_em_128f_new(void) {
-
-	OQS_SIG *sig = malloc(sizeof(OQS_SIG));
-	if (sig == NULL) {
-		return NULL;
-	}
-	memset(sig, 0, sizeof(OQS_SIG));
-
-	sig->method_name = OQS_SIG_alg_faest_em_128f;
-	sig->alg_version = "1.0";
-
-	sig->claimed_nist_level = 1;
-	sig->euf_cma = true;
-
-	sig->length_public_key = OQS_SIG_faest_em_128f_length_public_key;
-	sig->length_secret_key = OQS_SIG_faest_em_128f_length_secret_key;
-	sig->length_signature = OQS_SIG_faest_em_128f_length_signature;
-
-	sig->keypair = (OQS_STATUS (*)(uint8_t *, uint8_t *)) OQS_SIG_faest_em_128f_keypair;
-	sig->sign = (OQS_STATUS (*)(uint8_t *, size_t *, const uint8_t *, size_t, const uint8_t *)) OQS_SIG_faest_em_128f_sign;
-	sig->verify = (OQS_STATUS (*)(const uint8_t *, size_t, const uint8_t *, size_t, const uint8_t *)) OQS_SIG_faest_em_128f_verify;
-	sig->sign_with_ctx_str = (OQS_STATUS (*)(uint8_t *, size_t *, const uint8_t *, size_t, const uint8_t *, size_t, const uint8_t *)) OQS_SIG_faest_em_128f_sign_with_ctx_str;
-	sig->verify_with_ctx_str = (OQS_STATUS (*)(const uint8_t *, size_t, const uint8_t *, size_t, const uint8_t *, size_t, const uint8_t *)) OQS_SIG_faest_em_128f_verify_with_ctx_str;
-
-	return sig;
-}
-
-OQS_API OQS_STATUS OQS_SIG_faest_em_128f_keypair(uint8_t *public_key, uint8_t *secret_key) {
-	if (crypto_sign_keypair(public_key, secret_key) == 0) {
-		return OQS_SUCCESS;
-	} else {
-		return OQS_ERROR;
-	}
-}
-
-OQS_API OQS_STATUS OQS_SIG_faest_em_128f_sign(uint8_t *signature, size_t *signature_len, const uint8_t *message, size_t message_len, const uint8_t *secret_key) {
-	if (message_len > SIZE_MAX - CRYPTO_BYTES) {
-		return OQS_ERROR;
-	}
-
-	size_t signed_message_len = CRYPTO_BYTES + message_len;
-	uint8_t *signed_message = malloc(signed_message_len);
-	if (signed_message == NULL) {
-		return OQS_ERROR;
-	}
-
-	unsigned long long smlen = 0;
-	int ret = crypto_sign(signed_message, &smlen, message, message_len, secret_key);
-	if (ret != 0 || smlen != (unsigned long long)signed_message_len) {
-		free(signed_message);
-		return OQS_ERROR;
-	}
-
-	memcpy(signature, signed_message + message_len, CRYPTO_BYTES);
-	*signature_len = CRYPTO_BYTES;
-
-	free(signed_message);
-	return OQS_SUCCESS;
-}
-
-OQS_API OQS_STATUS OQS_SIG_faest_em_128f_verify(const uint8_t *message, size_t message_len, const uint8_t *signature, size_t signature_len, const uint8_t *public_key) {
-	if (signature_len != CRYPTO_BYTES) {
-		return OQS_ERROR;
-	}
-	if (message_len > SIZE_MAX - signature_len) {
-		return OQS_ERROR;
-	}
-
-	size_t signed_message_len = signature_len + message_len;
-	uint8_t *signed_message = malloc(signed_message_len);
-	uint8_t *recovered_message = malloc(message_len > 0 ? message_len : 1);
-	if (signed_message == NULL || recovered_message == NULL) {
-		free(signed_message);
-		free(recovered_message);
-		return OQS_ERROR;
-	}
-
-	memcpy(signed_message, message, message_len);
-	memcpy(signed_message + message_len, signature, signature_len);
-
-	unsigned long long recovered_len = 0;
-	int ret = crypto_sign_open(recovered_message, &recovered_len, signed_message,
-	                          (unsigned long long)signed_message_len, public_key);
-	if (ret != 0 || recovered_len != (unsigned long long)message_len ||
-	    (message_len > 0 && memcmp(recovered_message, message, message_len) != 0)) {
-		free(signed_message);
-		free(recovered_message);
-		return OQS_ERROR;
-	}
-
-	free(signed_message);
-	free(recovered_message);
-	return OQS_SUCCESS;
-}
-
-OQS_API OQS_STATUS OQS_SIG_faest_em_128f_sign_with_ctx_str(uint8_t *signature, size_t *signature_len, const uint8_t *message, size_t message_len, const uint8_t *ctx_str, size_t ctx_str_len, const uint8_t *secret_key) {
-	// FAEST-EM doesn't support context strings, fail if a non-empty context is provided
-	if (ctx_str != NULL && ctx_str_len > 0) {
-		return OQS_ERROR;
-	}
-	// Otherwise use regular signing
-	return OQS_SIG_faest_em_128f_sign(signature, signature_len, message, message_len, secret_key);
-}
-
-OQS_API OQS_STATUS OQS_SIG_faest_em_128f_verify_with_ctx_str(const uint8_t *message, size_t message_len, const uint8_t *signature, size_t signature_len, const uint8_t *ctx_str, size_t ctx_str_len, const uint8_t *public_key) {
-	// FAEST-EM doesn't support context strings, fail if a non-empty context is provided
-	if (ctx_str != NULL && ctx_str_len > 0) {
-		return OQS_ERROR;
-	}
-	// Otherwise use regular verification
-	return OQS_SIG_faest_em_128f_verify(message, message_len, signature, signature_len, public_key);
-}
-
+#if defined(OQS_FAEST_EM_128F_REF)
+#define FAEST_METHOD_NAME OQS_SIG_alg_faest_em_128f_ref
+#define FAEST_LENGTH_PUBLIC_KEY OQS_SIG_faest_em_128f_ref_length_public_key
+#define FAEST_LENGTH_SECRET_KEY OQS_SIG_faest_em_128f_ref_length_secret_key
+#define FAEST_LENGTH_SIGNATURE OQS_SIG_faest_em_128f_ref_length_signature
+#define FAEST_NEW OQS_SIG_faest_em_128f_ref_new
+#define FAEST_KEYPAIR OQS_SIG_faest_em_128f_ref_keypair
+#define FAEST_SIGN OQS_SIG_faest_em_128f_ref_sign
+#define FAEST_VERIFY OQS_SIG_faest_em_128f_ref_verify
+#define FAEST_SIGN_CTX OQS_SIG_faest_em_128f_ref_sign_with_ctx_str
+#define FAEST_VERIFY_CTX OQS_SIG_faest_em_128f_ref_verify_with_ctx_str
+#define BACKEND_KEYPAIR oqs_sig_private_faest_em_128f_ref_crypto_sign_keypair
+#define BACKEND_SIGN oqs_sig_private_faest_em_128f_ref_crypto_sign
+#define BACKEND_OPEN oqs_sig_private_faest_em_128f_ref_crypto_sign_open
+#elif defined(OQS_FAEST_EM_128F_AVX2)
+#define FAEST_METHOD_NAME OQS_SIG_alg_faest_em_128f_avx2
+#define FAEST_LENGTH_PUBLIC_KEY OQS_SIG_faest_em_128f_avx2_length_public_key
+#define FAEST_LENGTH_SECRET_KEY OQS_SIG_faest_em_128f_avx2_length_secret_key
+#define FAEST_LENGTH_SIGNATURE OQS_SIG_faest_em_128f_avx2_length_signature
+#define FAEST_NEW OQS_SIG_faest_em_128f_avx2_new
+#define FAEST_KEYPAIR OQS_SIG_faest_em_128f_avx2_keypair
+#define FAEST_SIGN OQS_SIG_faest_em_128f_avx2_sign
+#define FAEST_VERIFY OQS_SIG_faest_em_128f_avx2_verify
+#define FAEST_SIGN_CTX OQS_SIG_faest_em_128f_avx2_sign_with_ctx_str
+#define FAEST_VERIFY_CTX OQS_SIG_faest_em_128f_avx2_verify_with_ctx_str
+#define BACKEND_KEYPAIR oqs_sig_private_faest_em_128f_avx2_crypto_sign_keypair
+#define BACKEND_SIGN oqs_sig_private_faest_em_128f_avx2_crypto_sign
+#define BACKEND_OPEN oqs_sig_private_faest_em_128f_avx2_crypto_sign_open
+#else
+#error "FAEST wrapper compiled without REF/AVX2 selector"
 #endif
+
+extern int BACKEND_KEYPAIR(unsigned char *pk, unsigned char *sk);
+extern int BACKEND_SIGN(unsigned char *sm, unsigned long long *smlen,
+                        const unsigned char *m, unsigned long long mlen,
+                        const unsigned char *sk);
+extern int BACKEND_OPEN(unsigned char *m, unsigned long long *mlen,
+                        const unsigned char *sm, unsigned long long smlen,
+                        const unsigned char *pk);
+
+OQS_SIG *FAEST_NEW(void) {
+    OQS_SIG *sig = OQS_MEM_calloc(1, sizeof(OQS_SIG));
+    if (sig == NULL) {
+        return NULL;
+    }
+    sig->method_name = FAEST_METHOD_NAME;
+    sig->alg_version = "3.0";
+    sig->claimed_nist_level = 1;
+    sig->euf_cma = true;
+    sig->suf_cma = false;
+    sig->sig_with_ctx_support = false;
+    sig->length_public_key = FAEST_LENGTH_PUBLIC_KEY;
+    sig->length_secret_key = FAEST_LENGTH_SECRET_KEY;
+    sig->length_signature = FAEST_LENGTH_SIGNATURE;
+    sig->keypair = FAEST_KEYPAIR;
+    sig->sign = FAEST_SIGN;
+    sig->verify = FAEST_VERIFY;
+    sig->sign_with_ctx_str = FAEST_SIGN_CTX;
+    sig->verify_with_ctx_str = FAEST_VERIFY_CTX;
+    return sig;
+}
+
+OQS_API OQS_STATUS FAEST_KEYPAIR(uint8_t *public_key, uint8_t *secret_key) {
+    if (public_key == NULL || secret_key == NULL) {
+        return OQS_ERROR;
+    }
+    return BACKEND_KEYPAIR(public_key, secret_key) == 0 ? OQS_SUCCESS : OQS_ERROR;
+}
+
+OQS_API OQS_STATUS FAEST_SIGN(uint8_t *signature, size_t *signature_len,
+                              const uint8_t *message, size_t message_len,
+                              const uint8_t *secret_key) {
+    if (signature == NULL || signature_len == NULL || secret_key == NULL ||
+        (message == NULL && message_len != 0) ||
+        message_len > SIZE_MAX - FAEST_LENGTH_SIGNATURE) {
+        return OQS_ERROR;
+    }
+    const size_t total = message_len + FAEST_LENGTH_SIGNATURE;
+    uint8_t *sm = OQS_MEM_malloc(total);
+    if (sm == NULL) {
+        return OQS_ERROR;
+    }
+    const uint8_t empty_message = 0;
+    const uint8_t *msg = message_len == 0 ? &empty_message : message;
+    unsigned long long smlen = 0;
+    const int rc = BACKEND_SIGN(sm, &smlen, msg,
+                                (unsigned long long)message_len, secret_key);
+    if (rc != 0 || smlen != (unsigned long long)total) {
+        OQS_MEM_insecure_free(sm);
+        *signature_len = 0;
+        return OQS_ERROR;
+    }
+    memcpy(signature, sm + message_len, FAEST_LENGTH_SIGNATURE);
+    *signature_len = FAEST_LENGTH_SIGNATURE;
+    OQS_MEM_insecure_free(sm);
+    return OQS_SUCCESS;
+}
+
+OQS_API OQS_STATUS FAEST_VERIFY(const uint8_t *message, size_t message_len,
+                                const uint8_t *signature, size_t signature_len,
+                                const uint8_t *public_key) {
+    if (signature == NULL || public_key == NULL ||
+        (message == NULL && message_len != 0) ||
+        signature_len != FAEST_LENGTH_SIGNATURE ||
+        message_len > SIZE_MAX - signature_len) {
+        return OQS_ERROR;
+    }
+    const size_t total = message_len + signature_len;
+    uint8_t *sm = OQS_MEM_malloc(total);
+    uint8_t *recovered = OQS_MEM_malloc(message_len == 0 ? 1 : message_len);
+    if (sm == NULL || recovered == NULL) {
+        OQS_MEM_insecure_free(sm);
+        OQS_MEM_insecure_free(recovered);
+        return OQS_ERROR;
+    }
+    if (message_len != 0) {
+        memcpy(sm, message, message_len);
+    }
+    memcpy(sm + message_len, signature, signature_len);
+
+    unsigned long long recovered_len = 0;
+    const int rc = BACKEND_OPEN(recovered, &recovered_len, sm,
+                                (unsigned long long)total, public_key);
+    const int bad = rc != 0 ||
+                    recovered_len != (unsigned long long)message_len ||
+                    (message_len != 0 &&
+                     memcmp(recovered, message, message_len) != 0);
+
+    OQS_MEM_insecure_free(sm);
+    OQS_MEM_insecure_free(recovered);
+    return bad ? OQS_ERROR : OQS_SUCCESS;
+}
+
+OQS_API OQS_STATUS FAEST_SIGN_CTX(uint8_t *signature, size_t *signature_len,
+                                  const uint8_t *message, size_t message_len,
+                                  const uint8_t *ctx_str, size_t ctx_str_len,
+                                  const uint8_t *secret_key) {
+    (void)ctx_str;
+    if (ctx_str_len != 0) {
+        return OQS_ERROR;
+    }
+    return FAEST_SIGN(signature, signature_len, message, message_len, secret_key);
+}
+
+OQS_API OQS_STATUS FAEST_VERIFY_CTX(const uint8_t *message, size_t message_len,
+                                    const uint8_t *signature, size_t signature_len,
+                                    const uint8_t *ctx_str, size_t ctx_str_len,
+                                    const uint8_t *public_key) {
+    (void)ctx_str;
+    if (ctx_str_len != 0) {
+        return OQS_ERROR;
+    }
+    return FAEST_VERIFY(message, message_len, signature, signature_len, public_key);
+}

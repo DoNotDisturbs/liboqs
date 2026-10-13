@@ -125,6 +125,90 @@ OQS_API const char *OQS_SIG_alg_identifier(size_t i) {
 		OQS_SIG_alg_sqisign_p500_27_broadwell,
 		OQS_SIG_alg_sqisign_p664_17_ref,
 		OQS_SIG_alg_sqisign_p664_17_broadwell,
+		OQS_SIG_alg_faest_128s_ref,
+		OQS_SIG_alg_faest_128s_avx2,
+		OQS_SIG_alg_faest_128f_ref,
+		OQS_SIG_alg_faest_128f_avx2,
+		OQS_SIG_alg_faest_192s_ref,
+		OQS_SIG_alg_faest_192s_avx2,
+		OQS_SIG_alg_faest_192f_ref,
+		OQS_SIG_alg_faest_192f_avx2,
+		OQS_SIG_alg_faest_256s_ref,
+		OQS_SIG_alg_faest_256s_avx2,
+		OQS_SIG_alg_faest_256f_ref,
+		OQS_SIG_alg_faest_256f_avx2,
+		OQS_SIG_alg_faest_em_128s_ref,
+		OQS_SIG_alg_faest_em_128s_avx2,
+		OQS_SIG_alg_faest_em_128f_ref,
+		OQS_SIG_alg_faest_em_128f_avx2,
+		OQS_SIG_alg_faest_em_192s_ref,
+		OQS_SIG_alg_faest_em_192s_avx2,
+		OQS_SIG_alg_faest_em_192f_ref,
+		OQS_SIG_alg_faest_em_192f_avx2,
+		OQS_SIG_alg_faest_em_256s_ref,
+		OQS_SIG_alg_faest_em_256s_avx2,
+		OQS_SIG_alg_faest_em_256f_ref,
+		OQS_SIG_alg_faest_em_256f_avx2,
+		OQS_SIG_alg_qruov_1q7l10_aes_ref,
+		OQS_SIG_alg_qruov_1q7l10_aes_avx2,
+		OQS_SIG_alg_qruov_1q7l10_shake_ref,
+		OQS_SIG_alg_qruov_1q7l10_shake_avx2,
+		OQS_SIG_alg_qruov_3q7l10_aes_ref,
+		OQS_SIG_alg_qruov_3q7l10_aes_avx2,
+		OQS_SIG_alg_qruov_3q7l10_shake_ref,
+		OQS_SIG_alg_qruov_3q7l10_shake_avx2,
+		OQS_SIG_alg_qruov_5q7l10_aes_ref,
+		OQS_SIG_alg_qruov_5q7l10_aes_avx2,
+		OQS_SIG_alg_qruov_5q7l10_shake_ref,
+		OQS_SIG_alg_qruov_5q7l10_shake_avx2,
+		OQS_SIG_alg_qruov_1q31l3_aes_ref,
+		OQS_SIG_alg_qruov_1q31l3_aes_avx2,
+		OQS_SIG_alg_qruov_1q31l3_shake_ref,
+		OQS_SIG_alg_qruov_1q31l3_shake_avx2,
+		OQS_SIG_alg_qruov_3q31l3_aes_ref,
+		OQS_SIG_alg_qruov_3q31l3_aes_avx2,
+		OQS_SIG_alg_qruov_3q31l3_shake_ref,
+		OQS_SIG_alg_qruov_3q31l3_shake_avx2,
+		OQS_SIG_alg_qruov_5q31l3_aes_ref,
+		OQS_SIG_alg_qruov_5q31l3_aes_avx2,
+		OQS_SIG_alg_qruov_5q31l3_shake_ref,
+		OQS_SIG_alg_qruov_5q31l3_shake_avx2,
+		OQS_SIG_alg_qruov_1q31l10_aes_ref,
+		OQS_SIG_alg_qruov_1q31l10_aes_avx2,
+		OQS_SIG_alg_qruov_1q31l10_shake_ref,
+		OQS_SIG_alg_qruov_1q31l10_shake_avx2,
+		OQS_SIG_alg_qruov_3q31l10_aes_ref,
+		OQS_SIG_alg_qruov_3q31l10_aes_avx2,
+		OQS_SIG_alg_qruov_3q31l10_shake_ref,
+		OQS_SIG_alg_qruov_3q31l10_shake_avx2,
+		OQS_SIG_alg_qruov_5q31l10_aes_ref,
+		OQS_SIG_alg_qruov_5q31l10_aes_avx2,
+		OQS_SIG_alg_qruov_5q31l10_shake_ref,
+		OQS_SIG_alg_qruov_5q31l10_shake_avx2,
+		OQS_SIG_alg_qruov_1q127l3_aes_ref,
+		OQS_SIG_alg_qruov_1q127l3_aes_avx2,
+		OQS_SIG_alg_qruov_1q127l3_shake_ref,
+		OQS_SIG_alg_qruov_1q127l3_shake_avx2,
+		OQS_SIG_alg_qruov_3q127l3_aes_ref,
+		OQS_SIG_alg_qruov_3q127l3_aes_avx2,
+		OQS_SIG_alg_qruov_3q127l3_shake_ref,
+		OQS_SIG_alg_qruov_3q127l3_shake_avx2,
+		OQS_SIG_alg_qruov_5q127l3_aes_ref,
+		OQS_SIG_alg_qruov_5q127l3_aes_avx2,
+		OQS_SIG_alg_qruov_5q127l3_shake_ref,
+		OQS_SIG_alg_qruov_5q127l3_shake_avx2,
+		OQS_SIG_alg_qruov_1q127l10_aes_ref,
+		OQS_SIG_alg_qruov_1q127l10_aes_avx2,
+		OQS_SIG_alg_qruov_1q127l10_shake_ref,
+		OQS_SIG_alg_qruov_1q127l10_shake_avx2,
+		OQS_SIG_alg_qruov_3q127l10_aes_ref,
+		OQS_SIG_alg_qruov_3q127l10_aes_avx2,
+		OQS_SIG_alg_qruov_3q127l10_shake_ref,
+		OQS_SIG_alg_qruov_3q127l10_shake_avx2,
+		OQS_SIG_alg_qruov_5q127l10_aes_ref,
+		OQS_SIG_alg_qruov_5q127l10_aes_avx2,
+		OQS_SIG_alg_qruov_5q127l10_shake_ref,
+		OQS_SIG_alg_qruov_5q127l10_shake_avx2,
 		///// OQS_COPY_FROM_UPSTREAM_FRAGMENT_ALG_IDENTIFIER_END
 		///// OQS_COPY_FROM_SLH_DSA_FRAGMENT_ALGID_START
 		OQS_SIG_alg_slh_dsa_pure_sha2_128s,
@@ -1067,6 +1151,624 @@ OQS_API int OQS_SIG_alg_is_enabled(const char *method_name) {
 
 	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_sqisign_p664_17_broadwell)) {
 #ifdef OQS_ENABLE_SIG_sqisign_p664_17_broadwell
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_128s_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_128s
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_128s_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_128s
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_128f_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_128f
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_128f_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_128f
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_192s_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_192s
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_192s_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_192s
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_192f_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_192f
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_192f_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_192f
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_256s_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_256s
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_256s_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_256s
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_256f_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_256f
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_256f_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_256f
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_128s_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_em_128s
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_128s_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_em_128s
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_128f_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_em_128f
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_128f_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_em_128f
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_192s_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_em_192s
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_192s_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_em_192s
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_192f_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_em_192f
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_192f_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_em_192f
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_256s_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_em_256s
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_256s_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_em_256s
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_256f_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_em_256f
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_256f_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_em_256f
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q7l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q7l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q7l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q7l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q7l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q7l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q7l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q7l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q7l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q7l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q7l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q7l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l3_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l3_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l3_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l3_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l3_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l3_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l3_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l3_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l3_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l3_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l3_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l3_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l3_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l3_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l3_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l3_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l3_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l3_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l3_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l3_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l3_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l3_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l3_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l3_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return 1;
+#else
+		return 0;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
 		return 1;
 #else
 		return 0;
@@ -2787,6 +3489,624 @@ OQS_API OQS_SIG *OQS_SIG_new(const char *method_name) {
 	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_sqisign_p664_17_broadwell)) {
 #ifdef OQS_ENABLE_SIG_sqisign_p664_17_broadwell
 		return OQS_SIG_sqisign_p664_17_broadwell_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_128s_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_128s
+		return OQS_SIG_faest_128s_ref_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_128s_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_128s
+		return OQS_SIG_faest_128s_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_128f_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_128f
+		return OQS_SIG_faest_128f_ref_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_128f_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_128f
+		return OQS_SIG_faest_128f_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_192s_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_192s
+		return OQS_SIG_faest_192s_ref_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_192s_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_192s
+		return OQS_SIG_faest_192s_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_192f_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_192f
+		return OQS_SIG_faest_192f_ref_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_192f_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_192f
+		return OQS_SIG_faest_192f_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_256s_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_256s
+		return OQS_SIG_faest_256s_ref_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_256s_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_256s
+		return OQS_SIG_faest_256s_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_256f_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_256f
+		return OQS_SIG_faest_256f_ref_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_256f_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_256f
+		return OQS_SIG_faest_256f_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_128s_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_em_128s
+		return OQS_SIG_faest_em_128s_ref_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_128s_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_em_128s
+		return OQS_SIG_faest_em_128s_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_128f_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_em_128f
+		return OQS_SIG_faest_em_128f_ref_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_128f_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_em_128f
+		return OQS_SIG_faest_em_128f_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_192s_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_em_192s
+		return OQS_SIG_faest_em_192s_ref_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_192s_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_em_192s
+		return OQS_SIG_faest_em_192s_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_192f_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_em_192f
+		return OQS_SIG_faest_em_192f_ref_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_192f_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_em_192f
+		return OQS_SIG_faest_em_192f_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_256s_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_em_256s
+		return OQS_SIG_faest_em_256s_ref_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_256s_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_em_256s
+		return OQS_SIG_faest_em_256s_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_256f_ref)) {
+#ifdef OQS_ENABLE_SIG_faest_em_256f
+		return OQS_SIG_faest_em_256f_ref_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_faest_em_256f_avx2)) {
+#ifdef OQS_ENABLE_SIG_faest_em_256f
+		return OQS_SIG_faest_em_256f_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q7l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q7l10_aes_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q7l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q7l10_aes_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q7l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q7l10_shake_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q7l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q7l10_shake_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q7l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q7l10_aes_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q7l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q7l10_aes_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q7l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q7l10_shake_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q7l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q7l10_shake_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q7l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q7l10_aes_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q7l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q7l10_aes_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q7l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q7l10_shake_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q7l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q7l10_shake_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l3_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q31l3_aes_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l3_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q31l3_aes_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l3_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q31l3_shake_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l3_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q31l3_shake_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l3_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q31l3_aes_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l3_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q31l3_aes_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l3_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q31l3_shake_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l3_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q31l3_shake_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l3_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q31l3_aes_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l3_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q31l3_aes_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l3_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q31l3_shake_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l3_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q31l3_shake_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q31l10_aes_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q31l10_aes_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q31l10_shake_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q31l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q31l10_shake_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q31l10_aes_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q31l10_aes_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q31l10_shake_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q31l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q31l10_shake_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q31l10_aes_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q31l10_aes_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q31l10_shake_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q31l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q31l10_shake_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l3_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q127l3_aes_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l3_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q127l3_aes_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l3_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q127l3_shake_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l3_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q127l3_shake_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l3_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q127l3_aes_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l3_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q127l3_aes_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l3_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q127l3_shake_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l3_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q127l3_shake_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l3_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q127l3_aes_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l3_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q127l3_aes_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l3_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q127l3_shake_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l3_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q127l3_shake_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q127l10_aes_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q127l10_aes_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q127l10_shake_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_1q127l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_1q127l10_shake_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q127l10_aes_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q127l10_aes_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q127l10_shake_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_3q127l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_3q127l10_shake_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l10_aes_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q127l10_aes_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l10_aes_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q127l10_aes_avx2_new();
+#else
+		return NULL;
+#endif
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l10_shake_ref)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q127l10_shake_ref_new();
+#else
+		return NULL;
+#endif
+
+
+	} else if (0 == strcasecmp(method_name, OQS_SIG_alg_qruov_5q127l10_shake_avx2)) {
+#ifdef OQS_ENABLE_SIG_QRUOV
+		return OQS_SIG_qruov_5q127l10_shake_avx2_new();
 #else
 		return NULL;
 #endif

@@ -252,6 +252,174 @@ extern "C" {
 #define OQS_SIG_alg_sqisign_p664_17_ref "SQIsign-p664-17-REF"
 /** Algorithm identifier for SQIsign-p664-17-BROADWELL */
 #define OQS_SIG_alg_sqisign_p664_17_broadwell "SQIsign-p664-17-BROADWELL"
+/** Algorithm identifier for FAEST-128s-REF */
+#define OQS_SIG_alg_faest_128s_ref "FAEST-128s-REF"
+/** Algorithm identifier for FAEST-128s-AVX2 */
+#define OQS_SIG_alg_faest_128s_avx2 "FAEST-128s-AVX2"
+/** Algorithm identifier for FAEST-128f-REF */
+#define OQS_SIG_alg_faest_128f_ref "FAEST-128f-REF"
+/** Algorithm identifier for FAEST-128f-AVX2 */
+#define OQS_SIG_alg_faest_128f_avx2 "FAEST-128f-AVX2"
+/** Algorithm identifier for FAEST-192s-REF */
+#define OQS_SIG_alg_faest_192s_ref "FAEST-192s-REF"
+/** Algorithm identifier for FAEST-192s-AVX2 */
+#define OQS_SIG_alg_faest_192s_avx2 "FAEST-192s-AVX2"
+/** Algorithm identifier for FAEST-192f-REF */
+#define OQS_SIG_alg_faest_192f_ref "FAEST-192f-REF"
+/** Algorithm identifier for FAEST-192f-AVX2 */
+#define OQS_SIG_alg_faest_192f_avx2 "FAEST-192f-AVX2"
+/** Algorithm identifier for FAEST-256s-REF */
+#define OQS_SIG_alg_faest_256s_ref "FAEST-256s-REF"
+/** Algorithm identifier for FAEST-256s-AVX2 */
+#define OQS_SIG_alg_faest_256s_avx2 "FAEST-256s-AVX2"
+/** Algorithm identifier for FAEST-256f-REF */
+#define OQS_SIG_alg_faest_256f_ref "FAEST-256f-REF"
+/** Algorithm identifier for FAEST-256f-AVX2 */
+#define OQS_SIG_alg_faest_256f_avx2 "FAEST-256f-AVX2"
+/** Algorithm identifier for FAEST-EM-128s-REF */
+#define OQS_SIG_alg_faest_em_128s_ref "FAEST-EM-128s-REF"
+/** Algorithm identifier for FAEST-EM-128s-AVX2 */
+#define OQS_SIG_alg_faest_em_128s_avx2 "FAEST-EM-128s-AVX2"
+/** Algorithm identifier for FAEST-EM-128f-REF */
+#define OQS_SIG_alg_faest_em_128f_ref "FAEST-EM-128f-REF"
+/** Algorithm identifier for FAEST-EM-128f-AVX2 */
+#define OQS_SIG_alg_faest_em_128f_avx2 "FAEST-EM-128f-AVX2"
+/** Algorithm identifier for FAEST-EM-192s-REF */
+#define OQS_SIG_alg_faest_em_192s_ref "FAEST-EM-192s-REF"
+/** Algorithm identifier for FAEST-EM-192s-AVX2 */
+#define OQS_SIG_alg_faest_em_192s_avx2 "FAEST-EM-192s-AVX2"
+/** Algorithm identifier for FAEST-EM-192f-REF */
+#define OQS_SIG_alg_faest_em_192f_ref "FAEST-EM-192f-REF"
+/** Algorithm identifier for FAEST-EM-192f-AVX2 */
+#define OQS_SIG_alg_faest_em_192f_avx2 "FAEST-EM-192f-AVX2"
+/** Algorithm identifier for FAEST-EM-256s-REF */
+#define OQS_SIG_alg_faest_em_256s_ref "FAEST-EM-256s-REF"
+/** Algorithm identifier for FAEST-EM-256s-AVX2 */
+#define OQS_SIG_alg_faest_em_256s_avx2 "FAEST-EM-256s-AVX2"
+/** Algorithm identifier for FAEST-EM-256f-REF */
+#define OQS_SIG_alg_faest_em_256f_ref "FAEST-EM-256f-REF"
+/** Algorithm identifier for FAEST-EM-256f-AVX2 */
+#define OQS_SIG_alg_faest_em_256f_avx2 "FAEST-EM-256f-AVX2"
+/** Algorithm identifier for QR-UOV-1q7L10-v740-m100-AES-REF */
+#define OQS_SIG_alg_qruov_1q7l10_aes_ref "QR-UOV-1q7L10-v740-m100-AES-REF"
+/** Algorithm identifier for QR-UOV-1q7L10-v740-m100-AES-AVX2 */
+#define OQS_SIG_alg_qruov_1q7l10_aes_avx2 "QR-UOV-1q7L10-v740-m100-AES-AVX2"
+/** Algorithm identifier for QR-UOV-1q7L10-v740-m100-SHAKE-REF */
+#define OQS_SIG_alg_qruov_1q7l10_shake_ref "QR-UOV-1q7L10-v740-m100-SHAKE-REF"
+/** Algorithm identifier for QR-UOV-1q7L10-v740-m100-SHAKE-AVX2 */
+#define OQS_SIG_alg_qruov_1q7l10_shake_avx2 "QR-UOV-1q7L10-v740-m100-SHAKE-AVX2"
+/** Algorithm identifier for QR-UOV-3q7L10-v1100-m140-AES-REF */
+#define OQS_SIG_alg_qruov_3q7l10_aes_ref "QR-UOV-3q7L10-v1100-m140-AES-REF"
+/** Algorithm identifier for QR-UOV-3q7L10-v1100-m140-AES-AVX2 */
+#define OQS_SIG_alg_qruov_3q7l10_aes_avx2 "QR-UOV-3q7L10-v1100-m140-AES-AVX2"
+/** Algorithm identifier for QR-UOV-3q7L10-v1100-m140-SHAKE-REF */
+#define OQS_SIG_alg_qruov_3q7l10_shake_ref "QR-UOV-3q7L10-v1100-m140-SHAKE-REF"
+/** Algorithm identifier for QR-UOV-3q7L10-v1100-m140-SHAKE-AVX2 */
+#define OQS_SIG_alg_qruov_3q7l10_shake_avx2 "QR-UOV-3q7L10-v1100-m140-SHAKE-AVX2"
+/** Algorithm identifier for QR-UOV-5q7L10-v1490-m190-AES-REF */
+#define OQS_SIG_alg_qruov_5q7l10_aes_ref "QR-UOV-5q7L10-v1490-m190-AES-REF"
+/** Algorithm identifier for QR-UOV-5q7L10-v1490-m190-AES-AVX2 */
+#define OQS_SIG_alg_qruov_5q7l10_aes_avx2 "QR-UOV-5q7L10-v1490-m190-AES-AVX2"
+/** Algorithm identifier for QR-UOV-5q7L10-v1490-m190-SHAKE-REF */
+#define OQS_SIG_alg_qruov_5q7l10_shake_ref "QR-UOV-5q7L10-v1490-m190-SHAKE-REF"
+/** Algorithm identifier for QR-UOV-5q7L10-v1490-m190-SHAKE-AVX2 */
+#define OQS_SIG_alg_qruov_5q7l10_shake_avx2 "QR-UOV-5q7L10-v1490-m190-SHAKE-AVX2"
+/** Algorithm identifier for QR-UOV-1q31L3-v165-m60-AES-REF */
+#define OQS_SIG_alg_qruov_1q31l3_aes_ref "QR-UOV-1q31L3-v165-m60-AES-REF"
+/** Algorithm identifier for QR-UOV-1q31L3-v165-m60-AES-AVX2 */
+#define OQS_SIG_alg_qruov_1q31l3_aes_avx2 "QR-UOV-1q31L3-v165-m60-AES-AVX2"
+/** Algorithm identifier for QR-UOV-1q31L3-v165-m60-SHAKE-REF */
+#define OQS_SIG_alg_qruov_1q31l3_shake_ref "QR-UOV-1q31L3-v165-m60-SHAKE-REF"
+/** Algorithm identifier for QR-UOV-1q31L3-v165-m60-SHAKE-AVX2 */
+#define OQS_SIG_alg_qruov_1q31l3_shake_avx2 "QR-UOV-1q31L3-v165-m60-SHAKE-AVX2"
+/** Algorithm identifier for QR-UOV-3q31L3-v246-m87-AES-REF */
+#define OQS_SIG_alg_qruov_3q31l3_aes_ref "QR-UOV-3q31L3-v246-m87-AES-REF"
+/** Algorithm identifier for QR-UOV-3q31L3-v246-m87-AES-AVX2 */
+#define OQS_SIG_alg_qruov_3q31l3_aes_avx2 "QR-UOV-3q31L3-v246-m87-AES-AVX2"
+/** Algorithm identifier for QR-UOV-3q31L3-v246-m87-SHAKE-REF */
+#define OQS_SIG_alg_qruov_3q31l3_shake_ref "QR-UOV-3q31L3-v246-m87-SHAKE-REF"
+/** Algorithm identifier for QR-UOV-3q31L3-v246-m87-SHAKE-AVX2 */
+#define OQS_SIG_alg_qruov_3q31l3_shake_avx2 "QR-UOV-3q31L3-v246-m87-SHAKE-AVX2"
+/** Algorithm identifier for QR-UOV-5q31L3-v324-m114-AES-REF */
+#define OQS_SIG_alg_qruov_5q31l3_aes_ref "QR-UOV-5q31L3-v324-m114-AES-REF"
+/** Algorithm identifier for QR-UOV-5q31L3-v324-m114-AES-AVX2 */
+#define OQS_SIG_alg_qruov_5q31l3_aes_avx2 "QR-UOV-5q31L3-v324-m114-AES-AVX2"
+/** Algorithm identifier for QR-UOV-5q31L3-v324-m114-SHAKE-REF */
+#define OQS_SIG_alg_qruov_5q31l3_shake_ref "QR-UOV-5q31L3-v324-m114-SHAKE-REF"
+/** Algorithm identifier for QR-UOV-5q31L3-v324-m114-SHAKE-AVX2 */
+#define OQS_SIG_alg_qruov_5q31l3_shake_avx2 "QR-UOV-5q31L3-v324-m114-SHAKE-AVX2"
+/** Algorithm identifier for QR-UOV-1q31L10-v600-m70-AES-REF */
+#define OQS_SIG_alg_qruov_1q31l10_aes_ref "QR-UOV-1q31L10-v600-m70-AES-REF"
+/** Algorithm identifier for QR-UOV-1q31L10-v600-m70-AES-AVX2 */
+#define OQS_SIG_alg_qruov_1q31l10_aes_avx2 "QR-UOV-1q31L10-v600-m70-AES-AVX2"
+/** Algorithm identifier for QR-UOV-1q31L10-v600-m70-SHAKE-REF */
+#define OQS_SIG_alg_qruov_1q31l10_shake_ref "QR-UOV-1q31L10-v600-m70-SHAKE-REF"
+/** Algorithm identifier for QR-UOV-1q31L10-v600-m70-SHAKE-AVX2 */
+#define OQS_SIG_alg_qruov_1q31l10_shake_avx2 "QR-UOV-1q31L10-v600-m70-SHAKE-AVX2"
+/** Algorithm identifier for QR-UOV-3q31L10-v890-m100-AES-REF */
+#define OQS_SIG_alg_qruov_3q31l10_aes_ref "QR-UOV-3q31L10-v890-m100-AES-REF"
+/** Algorithm identifier for QR-UOV-3q31L10-v890-m100-AES-AVX2 */
+#define OQS_SIG_alg_qruov_3q31l10_aes_avx2 "QR-UOV-3q31L10-v890-m100-AES-AVX2"
+/** Algorithm identifier for QR-UOV-3q31L10-v890-m100-SHAKE-REF */
+#define OQS_SIG_alg_qruov_3q31l10_shake_ref "QR-UOV-3q31L10-v890-m100-SHAKE-REF"
+/** Algorithm identifier for QR-UOV-3q31L10-v890-m100-SHAKE-AVX2 */
+#define OQS_SIG_alg_qruov_3q31l10_shake_avx2 "QR-UOV-3q31L10-v890-m100-SHAKE-AVX2"
+/** Algorithm identifier for QR-UOV-5q31L10-v1120-m120-AES-REF */
+#define OQS_SIG_alg_qruov_5q31l10_aes_ref "QR-UOV-5q31L10-v1120-m120-AES-REF"
+/** Algorithm identifier for QR-UOV-5q31L10-v1120-m120-AES-AVX2 */
+#define OQS_SIG_alg_qruov_5q31l10_aes_avx2 "QR-UOV-5q31L10-v1120-m120-AES-AVX2"
+/** Algorithm identifier for QR-UOV-5q31L10-v1120-m120-SHAKE-REF */
+#define OQS_SIG_alg_qruov_5q31l10_shake_ref "QR-UOV-5q31L10-v1120-m120-SHAKE-REF"
+/** Algorithm identifier for QR-UOV-5q31L10-v1120-m120-SHAKE-AVX2 */
+#define OQS_SIG_alg_qruov_5q31l10_shake_avx2 "QR-UOV-5q31L10-v1120-m120-SHAKE-AVX2"
+/** Algorithm identifier for QR-UOV-1q127L3-v156-m54-AES-REF */
+#define OQS_SIG_alg_qruov_1q127l3_aes_ref "QR-UOV-1q127L3-v156-m54-AES-REF"
+/** Algorithm identifier for QR-UOV-1q127L3-v156-m54-AES-AVX2 */
+#define OQS_SIG_alg_qruov_1q127l3_aes_avx2 "QR-UOV-1q127L3-v156-m54-AES-AVX2"
+/** Algorithm identifier for QR-UOV-1q127L3-v156-m54-SHAKE-REF */
+#define OQS_SIG_alg_qruov_1q127l3_shake_ref "QR-UOV-1q127L3-v156-m54-SHAKE-REF"
+/** Algorithm identifier for QR-UOV-1q127L3-v156-m54-SHAKE-AVX2 */
+#define OQS_SIG_alg_qruov_1q127l3_shake_avx2 "QR-UOV-1q127L3-v156-m54-SHAKE-AVX2"
+/** Algorithm identifier for QR-UOV-3q127L3-v228-m78-AES-REF */
+#define OQS_SIG_alg_qruov_3q127l3_aes_ref "QR-UOV-3q127L3-v228-m78-AES-REF"
+/** Algorithm identifier for QR-UOV-3q127L3-v228-m78-AES-AVX2 */
+#define OQS_SIG_alg_qruov_3q127l3_aes_avx2 "QR-UOV-3q127L3-v228-m78-AES-AVX2"
+/** Algorithm identifier for QR-UOV-3q127L3-v228-m78-SHAKE-REF */
+#define OQS_SIG_alg_qruov_3q127l3_shake_ref "QR-UOV-3q127L3-v228-m78-SHAKE-REF"
+/** Algorithm identifier for QR-UOV-3q127L3-v228-m78-SHAKE-AVX2 */
+#define OQS_SIG_alg_qruov_3q127l3_shake_avx2 "QR-UOV-3q127L3-v228-m78-SHAKE-AVX2"
+/** Algorithm identifier for QR-UOV-5q127L3-v306-m105-AES-REF */
+#define OQS_SIG_alg_qruov_5q127l3_aes_ref "QR-UOV-5q127L3-v306-m105-AES-REF"
+/** Algorithm identifier for QR-UOV-5q127L3-v306-m105-AES-AVX2 */
+#define OQS_SIG_alg_qruov_5q127l3_aes_avx2 "QR-UOV-5q127L3-v306-m105-AES-AVX2"
+/** Algorithm identifier for QR-UOV-5q127L3-v306-m105-SHAKE-REF */
+#define OQS_SIG_alg_qruov_5q127l3_shake_ref "QR-UOV-5q127L3-v306-m105-SHAKE-REF"
+/** Algorithm identifier for QR-UOV-5q127L3-v306-m105-SHAKE-AVX2 */
+#define OQS_SIG_alg_qruov_5q127l3_shake_avx2 "QR-UOV-5q127L3-v306-m105-SHAKE-AVX2"
+/** Algorithm identifier for QR-UOV-1q127L10-v540-m60-AES-REF */
+#define OQS_SIG_alg_qruov_1q127l10_aes_ref "QR-UOV-1q127L10-v540-m60-AES-REF"
+/** Algorithm identifier for QR-UOV-1q127L10-v540-m60-AES-AVX2 */
+#define OQS_SIG_alg_qruov_1q127l10_aes_avx2 "QR-UOV-1q127L10-v540-m60-AES-AVX2"
+/** Algorithm identifier for QR-UOV-1q127L10-v540-m60-SHAKE-REF */
+#define OQS_SIG_alg_qruov_1q127l10_shake_ref "QR-UOV-1q127L10-v540-m60-SHAKE-REF"
+/** Algorithm identifier for QR-UOV-1q127L10-v540-m60-SHAKE-AVX2 */
+#define OQS_SIG_alg_qruov_1q127l10_shake_avx2 "QR-UOV-1q127L10-v540-m60-SHAKE-AVX2"
+/** Algorithm identifier for QR-UOV-3q127L10-v820-m90-AES-REF */
+#define OQS_SIG_alg_qruov_3q127l10_aes_ref "QR-UOV-3q127L10-v820-m90-AES-REF"
+/** Algorithm identifier for QR-UOV-3q127L10-v820-m90-AES-AVX2 */
+#define OQS_SIG_alg_qruov_3q127l10_aes_avx2 "QR-UOV-3q127L10-v820-m90-AES-AVX2"
+/** Algorithm identifier for QR-UOV-3q127L10-v820-m90-SHAKE-REF */
+#define OQS_SIG_alg_qruov_3q127l10_shake_ref "QR-UOV-3q127L10-v820-m90-SHAKE-REF"
+/** Algorithm identifier for QR-UOV-3q127L10-v820-m90-SHAKE-AVX2 */
+#define OQS_SIG_alg_qruov_3q127l10_shake_avx2 "QR-UOV-3q127L10-v820-m90-SHAKE-AVX2"
+/** Algorithm identifier for QR-UOV-5q127L10-v1040-m110-AES-REF */
+#define OQS_SIG_alg_qruov_5q127l10_aes_ref "QR-UOV-5q127L10-v1040-m110-AES-REF"
+/** Algorithm identifier for QR-UOV-5q127L10-v1040-m110-AES-AVX2 */
+#define OQS_SIG_alg_qruov_5q127l10_aes_avx2 "QR-UOV-5q127L10-v1040-m110-AES-AVX2"
+/** Algorithm identifier for QR-UOV-5q127L10-v1040-m110-SHAKE-REF */
+#define OQS_SIG_alg_qruov_5q127l10_shake_ref "QR-UOV-5q127L10-v1040-m110-SHAKE-REF"
+/** Algorithm identifier for QR-UOV-5q127L10-v1040-m110-SHAKE-AVX2 */
+#define OQS_SIG_alg_qruov_5q127l10_shake_avx2 "QR-UOV-5q127L10-v1040-m110-SHAKE-AVX2"
 ///// OQS_COPY_FROM_UPSTREAM_FRAGMENT_ALG_IDENTIFIER_END
 ///// OQS_COPY_FROM_SLH_DSA_FRAGMENT_ALGID_START
 /** Algorithm identifier for slh_dsa_pure_sha2_128s */
@@ -576,7 +744,7 @@ extern "C" {
 ///// OQS_COPY_FROM_UPSTREAM_FRAGMENT_ALGS_LENGTH_START
 
 /** Number of algorithm identifiers above. */
-#define OQS_SIG_algs_length 110 + OQS_SIG_SLH_DSA_algs_length
+#define OQS_SIG_algs_length 194 + OQS_SIG_SLH_DSA_algs_length
 ///// OQS_COPY_FROM_UPSTREAM_FRAGMENT_ALGS_LENGTH_END
 
 /**
@@ -851,6 +1019,24 @@ OQS_API bool OQS_SIG_supports_ctx_str(const char *alg_name);
 #ifdef OQS_ENABLE_SIG_SQISIGN
 #include <oqs/sig_sqisign.h>
 #endif /* OQS_ENABLE_SIG_SQISIGN */
+#if defined(OQS_ENABLE_SIG_FAEST) || \
+    defined(OQS_ENABLE_SIG_faest_128s) || \
+    defined(OQS_ENABLE_SIG_faest_128f) || \
+    defined(OQS_ENABLE_SIG_faest_192s) || \
+    defined(OQS_ENABLE_SIG_faest_192f) || \
+    defined(OQS_ENABLE_SIG_faest_256s) || \
+    defined(OQS_ENABLE_SIG_faest_256f) || \
+    defined(OQS_ENABLE_SIG_faest_em_128s) || \
+    defined(OQS_ENABLE_SIG_faest_em_128f) || \
+    defined(OQS_ENABLE_SIG_faest_em_192s) || \
+    defined(OQS_ENABLE_SIG_faest_em_192f) || \
+    defined(OQS_ENABLE_SIG_faest_em_256s) || \
+    defined(OQS_ENABLE_SIG_faest_em_256f)
+#include <oqs/sig_faest.h>
+#endif
+#ifdef OQS_ENABLE_SIG_QRUOV
+#include <oqs/sig_qruov.h>
+#endif /* OQS_ENABLE_SIG_QRUOV */
 ///// OQS_COPY_FROM_UPSTREAM_FRAGMENT_INCLUDE_END
 ///// OQS_COPY_FROM_SLH_DSA_FRAGMENT_INCLUDE_START
 #ifdef OQS_ENABLE_SIG_SLH_DSA
