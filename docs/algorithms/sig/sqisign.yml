@@ -1,0 +1,41 @@
+name: SQIsign
+type: signature
+nist-round: 3
+spec-version: NIST Additional Digital Signatures Round 3
+parameter-sets:
+- name: sqisign_p324_3_ref
+  claimed-nist-level: 1
+  claimed-security: EUF-CMA
+  length-public-key: 83
+  length-secret-key: 270
+  length-signature: 200
+- name: sqisign_p324_3_broadwell
+  claimed-nist-level: 1
+  claimed-security: EUF-CMA
+  length-public-key: 83
+  length-secret-key: 270
+  length-signature: 200
+- name: sqisign_p500_27_ref
+  claimed-nist-level: 3
+  claimed-security: EUF-CMA
+  length-public-key: 129
+  length-secret-key: 417
+  length-signature: 306
+- name: sqisign_p500_27_broadwell
+  claimed-nist-level: 3
+  claimed-security: EUF-CMA
+  length-public-key: 129
+  length-secret-key: 417
+  length-signature: 306
+- name: sqisign_p664_17_ref
+  claimed-nist-level: 5
+  claimed-security: EUF-CMA
+  length-public-key: 169
+  length-secret-key: 549
+  length-signature: 406
+- name: sqisign_p664_17_broadwell
+  claimed-nist-level: 5
+  claimed-security: EUF-CMA
+  length-public-key: 169
+  length-secret-key: 549
+  length-signature: 406
