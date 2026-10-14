@@ -6,6 +6,7 @@
 
 #include <oqs/sig_qruov.h>
 #include <oqs/common.h>
+#include <oqs/rand.h>
 
 #include <stddef.h>
 #include <stdint.h>
@@ -78,6 +79,20 @@ extern int BACKEND_SIGN(unsigned char *sm, unsigned long long *smlen,
 extern int BACKEND_OPEN(unsigned char *m, unsigned long long *mlen,
                         const unsigned char *sm, unsigned long long smlen,
                         const unsigned char *pk);
+
+
+#ifndef QRUOV_RANDOMBYTES_SYMBOL
+#error "QRUOV_RANDOMBYTES_SYMBOL must be defined by CMake"
+#endif
+
+void QRUOV_RANDOMBYTES_SYMBOL(unsigned char *out, unsigned long long outlen) {
+    while (outlen > (unsigned long long)SIZE_MAX) {
+        OQS_randombytes(out, SIZE_MAX);
+        out += SIZE_MAX;
+        outlen -= (unsigned long long)SIZE_MAX;
+    }
+    OQS_randombytes(out, (size_t)outlen);
+}
 
 OQS_SIG *QRUOV_NEW(void) {
     OQS_SIG *sig = OQS_MEM_calloc(1, sizeof(OQS_SIG));

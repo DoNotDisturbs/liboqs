@@ -2,131 +2,130 @@
 #
 # Minimal SQIsign v3 integration for liboqs.
 #
-# Only files needed by the SQIsign submission package's own liboqs metadata
-# are vendored under vendor/. No upstream tests, apps, KATs, scripts,
-# standalone CMake files, ARM backends, or integration metadata are included.
+# Only source files required by the submission package's own liboqs metadata
+# are copied byte-for-byte under upstream/. No official source file is edited.
 #
 # Exposed implementations:
 #   *_ref        portable/reference implementation
 #   *_broadwell  x86-64 Broadwell implementation (AVX2 + BMI2 + ADX)
 
 set(_SQISIGN_OBJS "")
-set(SQISIGN_VENDOR ${CMAKE_CURRENT_LIST_DIR}/vendor)
+set(SQISIGN_UPSTREAM ${CMAKE_CURRENT_LIST_DIR}/upstream)
 
 set(SQISIGN_COMMON_SOURCES
-    ${SQISIGN_VENDOR}/src/sqisign.c
-    ${SQISIGN_VENDOR}/src/common/generic/mem.c
-    ${SQISIGN_VENDOR}/src/ec/ref/lvlx/basis.c
-    ${SQISIGN_VENDOR}/src/ec/ref/lvlx/biextension.c
-    ${SQISIGN_VENDOR}/src/ec/ref/lvlx/ec.c
-    ${SQISIGN_VENDOR}/src/ec/ref/lvlx/isog.c
-    ${SQISIGN_VENDOR}/src/ec/ref/lvlx/normalize.c
-    ${SQISIGN_VENDOR}/src/hd/ref/lvlx/hd.c
-    ${SQISIGN_VENDOR}/src/hd/ref/lvlx/theta_isogenies.c
-    ${SQISIGN_VENDOR}/src/hd/ref/lvlx/theta_structure.c
-    ${SQISIGN_VENDOR}/src/hd/ref/lvlx/gluing.c
-    ${SQISIGN_VENDOR}/src/hd/ref/lvlx/splitting.c
-    ${SQISIGN_VENDOR}/src/id2iso/ref/lvlx/dim2id2iso.c
-    ${SQISIGN_VENDOR}/src/id2iso/ref/lvlx/id2iso.c
-    ${SQISIGN_VENDOR}/src/mp/ref/lvlx/mp.c
-    ${SQISIGN_VENDOR}/src/mp/ref/lvlx/modqx.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/algebra.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/dim2.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/dim4.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/finit.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/integers.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/lattice.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/printer.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/lll_applications.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/lll/lll_lg2.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/lll/lll_dim4.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/lll/lehmer_xgcd.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/lll/gaussian_xgcd.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/stdorder.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/qlapoty.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/ideal.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/protocol.c
-    ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/test/random_input_generation.c
-    ${SQISIGN_VENDOR}/src/signature/ref/lvlx/encode_secret.c
-    ${SQISIGN_VENDOR}/src/signature/ref/lvlx/keygen.c
-    ${SQISIGN_VENDOR}/src/signature/ref/lvlx/sign.c
-    ${SQISIGN_VENDOR}/src/verification/ref/lvlx/common.c
-    ${SQISIGN_VENDOR}/src/verification/ref/lvlx/encode_public.c
-    ${SQISIGN_VENDOR}/src/verification/ref/lvlx/verify.c
-    ${SQISIGN_VENDOR}/src/common/generic/prng.c
+    ${SQISIGN_UPSTREAM}/src/sqisign.c
+    ${SQISIGN_UPSTREAM}/src/common/generic/mem.c
+    ${SQISIGN_UPSTREAM}/src/ec/ref/lvlx/basis.c
+    ${SQISIGN_UPSTREAM}/src/ec/ref/lvlx/biextension.c
+    ${SQISIGN_UPSTREAM}/src/ec/ref/lvlx/ec.c
+    ${SQISIGN_UPSTREAM}/src/ec/ref/lvlx/isog.c
+    ${SQISIGN_UPSTREAM}/src/ec/ref/lvlx/normalize.c
+    ${SQISIGN_UPSTREAM}/src/hd/ref/lvlx/hd.c
+    ${SQISIGN_UPSTREAM}/src/hd/ref/lvlx/theta_isogenies.c
+    ${SQISIGN_UPSTREAM}/src/hd/ref/lvlx/theta_structure.c
+    ${SQISIGN_UPSTREAM}/src/hd/ref/lvlx/gluing.c
+    ${SQISIGN_UPSTREAM}/src/hd/ref/lvlx/splitting.c
+    ${SQISIGN_UPSTREAM}/src/id2iso/ref/lvlx/dim2id2iso.c
+    ${SQISIGN_UPSTREAM}/src/id2iso/ref/lvlx/id2iso.c
+    ${SQISIGN_UPSTREAM}/src/mp/ref/lvlx/mp.c
+    ${SQISIGN_UPSTREAM}/src/mp/ref/lvlx/modqx.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/algebra.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/dim2.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/dim4.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/finit.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/integers.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/lattice.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/printer.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/lll_applications.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/lll/lll_lg2.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/lll/lll_dim4.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/lll/lehmer_xgcd.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/lll/gaussian_xgcd.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/stdorder.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/qlapoty.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/ideal.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/protocol.c
+    ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/test/random_input_generation.c
+    ${SQISIGN_UPSTREAM}/src/signature/ref/lvlx/encode_secret.c
+    ${SQISIGN_UPSTREAM}/src/signature/ref/lvlx/keygen.c
+    ${SQISIGN_UPSTREAM}/src/signature/ref/lvlx/sign.c
+    ${SQISIGN_UPSTREAM}/src/verification/ref/lvlx/common.c
+    ${SQISIGN_UPSTREAM}/src/verification/ref/lvlx/encode_public.c
+    ${SQISIGN_UPSTREAM}/src/verification/ref/lvlx/verify.c
+    ${SQISIGN_UPSTREAM}/src/common/generic/prng.c
 )
 
 set(SQISIGN_COMMON_REF_SOURCES
-    ${SQISIGN_VENDOR}/src/gf/ref/lvlx/fp.c
-    ${SQISIGN_VENDOR}/src/gf/ref/lvlx/fp2.c
+    ${SQISIGN_UPSTREAM}/src/gf/ref/lvlx/fp.c
+    ${SQISIGN_UPSTREAM}/src/gf/ref/lvlx/fp2.c
 )
 
 set(SQISIGN_COMMON_BROADWELL_SOURCES
-    ${SQISIGN_VENDOR}/src/gf/sat64/lvlx/fp2.c
-    ${SQISIGN_VENDOR}/src/gf/sat64/lvlx/fp_generic.c
+    ${SQISIGN_UPSTREAM}/src/gf/sat64/lvlx/fp2.c
+    ${SQISIGN_UPSTREAM}/src/gf/sat64/lvlx/fp_generic.c
 )
 
 set(SQISIGN_P324_3_REF_SOURCES
-    ${SQISIGN_VENDOR}/src/precomp/ref/p324_3/e0_basis.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p324_3/ec_params.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p324_3/endomorphism_action.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p324_3/quaternion_data.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p324_3/torsion_constants.c
-    ${SQISIGN_VENDOR}/src/gf/ref/p324_3/fp_p324_3.c
-    ${SQISIGN_VENDOR}/src/nistapi/p324_3/api.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p324_3/e0_basis.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p324_3/ec_params.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p324_3/endomorphism_action.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p324_3/quaternion_data.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p324_3/torsion_constants.c
+    ${SQISIGN_UPSTREAM}/src/gf/ref/p324_3/fp_p324_3.c
+    ${SQISIGN_UPSTREAM}/src/nistapi/p324_3/api.c
 )
 
 set(SQISIGN_P324_3_BROADWELL_SOURCES
-    ${SQISIGN_VENDOR}/src/precomp/ref/p324_3/e0_basis.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p324_3/ec_params.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p324_3/endomorphism_action.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p324_3/quaternion_data.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p324_3/torsion_constants.c
-    ${SQISIGN_VENDOR}/src/gf/sat64/p324_3/fp.c
-    ${SQISIGN_VENDOR}/src/gf/broadwell/p324_3/fp_asm.S
-    ${SQISIGN_VENDOR}/src/nistapi/p324_3/api.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p324_3/e0_basis.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p324_3/ec_params.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p324_3/endomorphism_action.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p324_3/quaternion_data.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p324_3/torsion_constants.c
+    ${SQISIGN_UPSTREAM}/src/gf/sat64/p324_3/fp.c
+    ${SQISIGN_UPSTREAM}/src/gf/broadwell/p324_3/fp_asm.S
+    ${SQISIGN_UPSTREAM}/src/nistapi/p324_3/api.c
 )
 
 set(SQISIGN_P500_27_REF_SOURCES
-    ${SQISIGN_VENDOR}/src/precomp/ref/p500_27/e0_basis.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p500_27/ec_params.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p500_27/endomorphism_action.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p500_27/quaternion_data.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p500_27/torsion_constants.c
-    ${SQISIGN_VENDOR}/src/gf/ref/p500_27/fp_p500_27.c
-    ${SQISIGN_VENDOR}/src/nistapi/p500_27/api.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p500_27/e0_basis.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p500_27/ec_params.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p500_27/endomorphism_action.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p500_27/quaternion_data.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p500_27/torsion_constants.c
+    ${SQISIGN_UPSTREAM}/src/gf/ref/p500_27/fp_p500_27.c
+    ${SQISIGN_UPSTREAM}/src/nistapi/p500_27/api.c
 )
 
 set(SQISIGN_P500_27_BROADWELL_SOURCES
-    ${SQISIGN_VENDOR}/src/precomp/ref/p500_27/e0_basis.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p500_27/ec_params.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p500_27/endomorphism_action.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p500_27/quaternion_data.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p500_27/torsion_constants.c
-    ${SQISIGN_VENDOR}/src/gf/sat64/p500_27/fp.c
-    ${SQISIGN_VENDOR}/src/gf/broadwell/p500_27/fp_asm.S
-    ${SQISIGN_VENDOR}/src/nistapi/p500_27/api.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p500_27/e0_basis.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p500_27/ec_params.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p500_27/endomorphism_action.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p500_27/quaternion_data.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p500_27/torsion_constants.c
+    ${SQISIGN_UPSTREAM}/src/gf/sat64/p500_27/fp.c
+    ${SQISIGN_UPSTREAM}/src/gf/broadwell/p500_27/fp_asm.S
+    ${SQISIGN_UPSTREAM}/src/nistapi/p500_27/api.c
 )
 
 set(SQISIGN_P664_17_REF_SOURCES
-    ${SQISIGN_VENDOR}/src/precomp/ref/p664_17/e0_basis.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p664_17/ec_params.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p664_17/endomorphism_action.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p664_17/quaternion_data.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p664_17/torsion_constants.c
-    ${SQISIGN_VENDOR}/src/gf/ref/p664_17/fp_p664_17.c
-    ${SQISIGN_VENDOR}/src/nistapi/p664_17/api.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p664_17/e0_basis.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p664_17/ec_params.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p664_17/endomorphism_action.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p664_17/quaternion_data.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p664_17/torsion_constants.c
+    ${SQISIGN_UPSTREAM}/src/gf/ref/p664_17/fp_p664_17.c
+    ${SQISIGN_UPSTREAM}/src/nistapi/p664_17/api.c
 )
 
 set(SQISIGN_P664_17_BROADWELL_SOURCES
-    ${SQISIGN_VENDOR}/src/precomp/ref/p664_17/e0_basis.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p664_17/ec_params.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p664_17/endomorphism_action.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p664_17/quaternion_data.c
-    ${SQISIGN_VENDOR}/src/precomp/ref/p664_17/torsion_constants.c
-    ${SQISIGN_VENDOR}/src/gf/sat64/p664_17/fp.c
-    ${SQISIGN_VENDOR}/src/gf/broadwell/p664_17/fp_asm.S
-    ${SQISIGN_VENDOR}/src/nistapi/p664_17/api.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p664_17/e0_basis.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p664_17/ec_params.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p664_17/endomorphism_action.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p664_17/quaternion_data.c
+    ${SQISIGN_UPSTREAM}/src/precomp/ref/p664_17/torsion_constants.c
+    ${SQISIGN_UPSTREAM}/src/gf/sat64/p664_17/fp.c
+    ${SQISIGN_UPSTREAM}/src/gf/broadwell/p664_17/fp_asm.S
+    ${SQISIGN_UPSTREAM}/src/nistapi/p664_17/api.c
 )
 
 
@@ -139,7 +138,7 @@ function(sqisign_add_variant NAME PARAM BACKEND WRAPPER SELECTOR)
             ${SQISIGN_${PARAM_UPPER}_REF_SOURCES}
         )
         set(BACKEND_INCLUDE_DIRS
-            ${SQISIGN_VENDOR}/src/gf/ref/include
+            ${SQISIGN_UPSTREAM}/src/gf/ref/include
         )
         set(BUILD_DEFS
             SQISIGN_BUILD_TYPE_REF=ON
@@ -158,8 +157,8 @@ function(sqisign_add_variant NAME PARAM BACKEND WRAPPER SELECTOR)
         # IMPORTANT: the parameter-specific SAT64 headers must come before any
         # generic field headers because broadwell fp.c includes <fp.h>.
         set(BACKEND_INCLUDE_DIRS
-            ${SQISIGN_VENDOR}/src/gf/sat64/${PARAM}/include
-            ${SQISIGN_VENDOR}/src/gf/sat64/include
+            ${SQISIGN_UPSTREAM}/src/gf/sat64/${PARAM}/include
+            ${SQISIGN_UPSTREAM}/src/gf/sat64/include
         )
 
         set(BUILD_DEFS
@@ -179,24 +178,24 @@ function(sqisign_add_variant NAME PARAM BACKEND WRAPPER SELECTOR)
     # The liboqs shims are deliberately first so <rng.h>, <fips202.h>, and
     # <ct_testing.h> resolve to the liboqs adapters rather than standalone code.
     target_include_directories(${NAME}_core PRIVATE
-        ${SQISIGN_VENDOR}/integration/liboqs
-        ${SQISIGN_VENDOR}/include
-        ${SQISIGN_VENDOR}/src/common/generic/include
+        ${SQISIGN_UPSTREAM}/integration/liboqs
+        ${SQISIGN_UPSTREAM}/include
+        ${SQISIGN_UPSTREAM}/src/common/generic/include
 
-        ${SQISIGN_VENDOR}/src/mp/ref/include
-        ${SQISIGN_VENDOR}/src/ec/ref/include
-        ${SQISIGN_VENDOR}/src/hd/ref/include
-        ${SQISIGN_VENDOR}/src/hd/ref/lvlx
-        ${SQISIGN_VENDOR}/src/id2iso/ref/include
-        ${SQISIGN_VENDOR}/src/quaternion/ref/include
-        ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx
-        ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/internal_quaternion_headers
-        ${SQISIGN_VENDOR}/src/quaternion/ref/lvlx/lll
-        ${SQISIGN_VENDOR}/src/signature/ref/include
-        ${SQISIGN_VENDOR}/src/verification/ref/include
+        ${SQISIGN_UPSTREAM}/src/mp/ref/include
+        ${SQISIGN_UPSTREAM}/src/ec/ref/include
+        ${SQISIGN_UPSTREAM}/src/hd/ref/include
+        ${SQISIGN_UPSTREAM}/src/hd/ref/lvlx
+        ${SQISIGN_UPSTREAM}/src/id2iso/ref/include
+        ${SQISIGN_UPSTREAM}/src/quaternion/ref/include
+        ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx
+        ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/internal_quaternion_headers
+        ${SQISIGN_UPSTREAM}/src/quaternion/ref/lvlx/lll
+        ${SQISIGN_UPSTREAM}/src/signature/ref/include
+        ${SQISIGN_UPSTREAM}/src/verification/ref/include
 
-        ${SQISIGN_VENDOR}/src/precomp/ref/${PARAM}/include
-        ${SQISIGN_VENDOR}/src/nistapi/${PARAM}
+        ${SQISIGN_UPSTREAM}/src/precomp/ref/${PARAM}/include
+        ${SQISIGN_UPSTREAM}/src/nistapi/${PARAM}
 
         ${BACKEND_INCLUDE_DIRS}
     )
