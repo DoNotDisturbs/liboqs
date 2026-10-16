@@ -115,6 +115,10 @@ add_library(oqs kem/kem.c
                 ${SIG_STFL_OBJS}
                 ${COMMON_OBJS})
 
+if(OQS_ENABLE_SIG_SDITH AND UNIX)
+    target_link_libraries(oqs PRIVATE m)
+endif()
+
 # Internal library to be used only by test programs
 add_library(oqs-internal STATIC ${INTERNAL_OBJS})
 

@@ -1,0 +1,5 @@
+NIST archive: sdith-package-v3.zip
+NIST archive SHA-256: 3eedaba7c968096634754e9013ce5c50cbeacda33a43355f8a20985b06d34dc5
+Original directory: submission_package/Reference_Implementation/cat5_fast_cipherpow/
+Public liboqs variant: sdith_cat5_fast_cipherpow_ref
+Official src/ and lib/ files copied byte-for-byte unchanged.

@@ -3,7 +3,7 @@ type: signature
 nist-round: 3
 spec-version: NIST Additional Digital Signatures Round 3
 parameter-sets:
-- name: sdith_cat1_fast_cipherpow_opt
+- name: sdith_cat1_fast_cipherpow_avx2
   claimed-nist-level: 1
   claimed-security: EUF-CMA
   length-public-key: 70
@@ -15,7 +15,7 @@ parameter-sets:
   length-public-key: 70
   length-secret-key: 147
   length-signature: 4643
-- name: sdith_cat1_fast_opt
+- name: sdith_cat1_fast_avx2
   claimed-nist-level: 1
   claimed-security: EUF-CMA
   length-public-key: 70
@@ -27,7 +27,7 @@ parameter-sets:
   length-public-key: 70
   length-secret-key: 147
   length-signature: 4914
-- name: sdith_cat1_short_cipherpow_opt
+- name: sdith_cat1_short_cipherpow_avx2
   claimed-nist-level: 1
   claimed-security: EUF-CMA
   length-public-key: 70
@@ -39,7 +39,7 @@ parameter-sets:
   length-public-key: 70
   length-secret-key: 147
   length-signature: 3721
-- name: sdith_cat1_short_opt
+- name: sdith_cat1_short_avx2
   claimed-nist-level: 1
   claimed-security: EUF-CMA
   length-public-key: 70
@@ -51,7 +51,7 @@ parameter-sets:
   length-public-key: 70
   length-secret-key: 147
   length-signature: 3721
-- name: sdith_cat3_fast_cipherpow_opt
+- name: sdith_cat3_fast_cipherpow_avx2
   claimed-nist-level: 3
   claimed-security: EUF-CMA
   length-public-key: 98
@@ -63,7 +63,7 @@ parameter-sets:
   length-public-key: 98
   length-secret-key: 208
   length-signature: 10452
-- name: sdith_cat3_fast_opt
+- name: sdith_cat3_fast_avx2
   claimed-nist-level: 3
   claimed-security: EUF-CMA
   length-public-key: 98
@@ -75,7 +75,7 @@ parameter-sets:
   length-public-key: 98
   length-secret-key: 208
   length-signature: 10852
-- name: sdith_cat3_short_cipherpow_opt
+- name: sdith_cat3_short_cipherpow_avx2
   claimed-nist-level: 3
   claimed-security: EUF-CMA
   length-public-key: 98
@@ -87,7 +87,7 @@ parameter-sets:
   length-public-key: 98
   length-secret-key: 208
   length-signature: 8484
-- name: sdith_cat3_short_opt
+- name: sdith_cat3_short_avx2
   claimed-nist-level: 3
   claimed-security: EUF-CMA
   length-public-key: 98
@@ -99,7 +99,7 @@ parameter-sets:
   length-public-key: 98
   length-secret-key: 208
   length-signature: 8484
-- name: sdith_cat5_fast_cipherpow_opt
+- name: sdith_cat5_fast_cipherpow_avx2
   claimed-nist-level: 5
   claimed-security: EUF-CMA
   length-public-key: 132
@@ -111,7 +111,7 @@ parameter-sets:
   length-public-key: 132
   length-secret-key: 275
   length-signature: 19144
-- name: sdith_cat5_fast_opt
+- name: sdith_cat5_fast_avx2
   claimed-nist-level: 5
   claimed-security: EUF-CMA
   length-public-key: 132
@@ -123,7 +123,7 @@ parameter-sets:
   length-public-key: 132
   length-secret-key: 275
   length-signature: 19144
-- name: sdith_cat5_short_cipherpow_opt
+- name: sdith_cat5_short_cipherpow_avx2
   claimed-nist-level: 5
   claimed-security: EUF-CMA
   length-public-key: 132
@@ -135,7 +135,7 @@ parameter-sets:
   length-public-key: 132
   length-secret-key: 275
   length-signature: 15147
-- name: sdith_cat5_short_opt
+- name: sdith_cat5_short_avx2
   claimed-nist-level: 5
   claimed-security: EUF-CMA
   length-public-key: 132
