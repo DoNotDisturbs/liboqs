@@ -1,144 +1,178 @@
 // SPDX-License-Identifier: MIT
 
 #include <stdlib.h>
-
 #include <oqs/sig_mayo.h>
 
+/* Compiled with MAYO_BUILD_TYPE_REF + ENABLE_PARAMS_DYNAMIC. */
+#include "mayo.h"
+
 #if defined(OQS_ENABLE_SIG_mayo_1)
-OQS_SIG *OQS_SIG_mayo_1_new(void) {
 
-	OQS_SIG *sig = OQS_MEM_malloc(sizeof(OQS_SIG));
-	if (sig == NULL) {
-		return NULL;
-	}
-	sig->method_name = OQS_SIG_alg_mayo_1;
-	sig->alg_version = "round2";
-
-	sig->claimed_nist_level = 1;
-	sig->euf_cma = true;
-	sig->suf_cma = false;
-	sig->sig_with_ctx_support = false;
-
-	sig->length_public_key = OQS_SIG_mayo_1_length_public_key;
-	sig->length_secret_key = OQS_SIG_mayo_1_length_secret_key;
-	sig->length_signature = OQS_SIG_mayo_1_length_signature;
-
-	sig->keypair = OQS_SIG_mayo_1_keypair;
-	sig->sign = OQS_SIG_mayo_1_sign;
-	sig->verify = OQS_SIG_mayo_1_verify;
-	sig->sign_with_ctx_str = OQS_SIG_mayo_1_sign_with_ctx_str;
-	sig->verify_with_ctx_str = OQS_SIG_mayo_1_verify_with_ctx_str;
-
-	return sig;
-}
-
-extern int pqmayo_MAYO_1_opt_crypto_sign_keypair(uint8_t *pk, uint8_t *sk);
-extern int pqmayo_MAYO_1_opt_crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t *sk);
-extern int pqmayo_MAYO_1_opt_crypto_sign_verify(const uint8_t *sig, size_t siglen, const uint8_t *m, size_t mlen, const uint8_t *pk);
-
+extern int pqmayo_MAYO_1_opt_crypto_sign_keypair(uint8_t *, uint8_t *);
+extern int pqmayo_MAYO_1_opt_crypto_sign_signature(uint8_t *, size_t *, const uint8_t *, size_t, const uint8_t *);
+extern int pqmayo_MAYO_1_opt_crypto_sign_verify(const uint8_t *, size_t, const uint8_t *, size_t, const uint8_t *);
 #if defined(OQS_ENABLE_SIG_mayo_1_avx2)
-extern int pqmayo_MAYO_1_avx2_crypto_sign_keypair(uint8_t *pk, uint8_t *sk);
-extern int pqmayo_MAYO_1_avx2_crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t *sk);
-extern int pqmayo_MAYO_1_avx2_crypto_sign_verify(const uint8_t *sig, size_t siglen, const uint8_t *m, size_t mlen, const uint8_t *pk);
+extern int pqmayo_MAYO_1_avx2_crypto_sign_keypair(uint8_t *, uint8_t *);
+extern int pqmayo_MAYO_1_avx2_crypto_sign_signature(uint8_t *, size_t *, const uint8_t *, size_t, const uint8_t *);
+extern int pqmayo_MAYO_1_avx2_crypto_sign_verify(const uint8_t *, size_t, const uint8_t *, size_t, const uint8_t *);
 #endif
-
 #if defined(OQS_ENABLE_SIG_mayo_1_neon)
-extern int pqmayo_MAYO_1_neon_crypto_sign_keypair(uint8_t *pk, uint8_t *sk);
-extern int pqmayo_MAYO_1_neon_crypto_sign_signature(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t *sk);
-extern int pqmayo_MAYO_1_neon_crypto_sign_verify(const uint8_t *sig, size_t siglen, const uint8_t *m, size_t mlen, const uint8_t *pk);
+extern int pqmayo_MAYO_1_neon_crypto_sign_keypair(uint8_t *, uint8_t *);
+extern int pqmayo_MAYO_1_neon_crypto_sign_signature(uint8_t *, size_t *, const uint8_t *, size_t, const uint8_t *);
+extern int pqmayo_MAYO_1_neon_crypto_sign_verify(const uint8_t *, size_t, const uint8_t *, size_t, const uint8_t *);
 #endif
 
-OQS_API OQS_STATUS OQS_SIG_mayo_1_keypair(uint8_t *public_key, uint8_t *secret_key) {
+static OQS_SIG *mayo_1_new_common(
+    const char *name,
+    OQS_STATUS (*keypair)(uint8_t *, uint8_t *),
+    OQS_STATUS (*sign)(uint8_t *, size_t *, const uint8_t *, size_t, const uint8_t *),
+    OQS_STATUS (*verify)(const uint8_t *, size_t, const uint8_t *, size_t, const uint8_t *),
+    OQS_STATUS (*sign_ctx)(uint8_t *, size_t *, const uint8_t *, size_t, const uint8_t *, size_t, const uint8_t *),
+    OQS_STATUS (*verify_ctx)(const uint8_t *, size_t, const uint8_t *, size_t, const uint8_t *, size_t, const uint8_t *)) {
+    OQS_SIG *sig = OQS_MEM_malloc(sizeof(OQS_SIG));
+    if (sig == NULL) return NULL;
+    sig->method_name = name;
+    sig->alg_version = "round2";
+    sig->claimed_nist_level = 1;
+    sig->euf_cma = true;
+    sig->suf_cma = false;
+    sig->sig_with_ctx_support = false;
+    sig->length_public_key = OQS_SIG_mayo_1_length_public_key;
+    sig->length_secret_key = OQS_SIG_mayo_1_length_secret_key;
+    sig->length_signature = OQS_SIG_mayo_1_length_signature;
+    sig->keypair = keypair;
+    sig->sign = sign;
+    sig->verify = verify;
+    sig->sign_with_ctx_str = sign_ctx;
+    sig->verify_with_ctx_str = verify_ctx;
+    return sig;
+}
+
+/* Historical liboqs MAYO-1: runtime dispatch preserved. */
+OQS_SIG *OQS_SIG_mayo_1_new(void) {
+    return mayo_1_new_common("MAYO-1", OQS_SIG_mayo_1_keypair,
+        OQS_SIG_mayo_1_sign, OQS_SIG_mayo_1_verify,
+        OQS_SIG_mayo_1_sign_with_ctx_str, OQS_SIG_mayo_1_verify_with_ctx_str);
+}
+
+OQS_API OQS_STATUS OQS_SIG_mayo_1_keypair(uint8_t *pk, uint8_t *sk) {
 #if defined(OQS_ENABLE_SIG_mayo_1_avx2)
 #if defined(OQS_DIST_BUILD)
-	if (OQS_CPU_has_extension(OQS_CPU_EXT_AVX2)) {
-#endif /* OQS_DIST_BUILD */
-		return (OQS_STATUS) pqmayo_MAYO_1_avx2_crypto_sign_keypair(public_key, secret_key);
+    if (OQS_CPU_has_extension(OQS_CPU_EXT_AVX2)) {
+#endif
+        return (OQS_STATUS)pqmayo_MAYO_1_avx2_crypto_sign_keypair(pk, sk);
 #if defined(OQS_DIST_BUILD)
-	} else {
-		return (OQS_STATUS) pqmayo_MAYO_1_opt_crypto_sign_keypair(public_key, secret_key);
-	}
-#endif /* OQS_DIST_BUILD */
+    } else return (OQS_STATUS)pqmayo_MAYO_1_opt_crypto_sign_keypair(pk, sk);
+#endif
 #elif defined(OQS_ENABLE_SIG_mayo_1_neon)
 #if defined(OQS_DIST_BUILD)
-	if (OQS_CPU_has_extension(OQS_CPU_EXT_ARM_NEON)) {
-#endif /* OQS_DIST_BUILD */
-		return (OQS_STATUS) pqmayo_MAYO_1_neon_crypto_sign_keypair(public_key, secret_key);
+    if (OQS_CPU_has_extension(OQS_CPU_EXT_ARM_NEON)) {
+#endif
+        return (OQS_STATUS)pqmayo_MAYO_1_neon_crypto_sign_keypair(pk, sk);
 #if defined(OQS_DIST_BUILD)
-	} else {
-		return (OQS_STATUS) pqmayo_MAYO_1_opt_crypto_sign_keypair(public_key, secret_key);
-	}
-#endif /* OQS_DIST_BUILD */
+    } else return (OQS_STATUS)pqmayo_MAYO_1_opt_crypto_sign_keypair(pk, sk);
+#endif
 #else
-	return (OQS_STATUS) pqmayo_MAYO_1_opt_crypto_sign_keypair(public_key, secret_key);
+    return (OQS_STATUS)pqmayo_MAYO_1_opt_crypto_sign_keypair(pk, sk);
 #endif
 }
 
-OQS_API OQS_STATUS OQS_SIG_mayo_1_sign(uint8_t *signature, size_t *signature_len, const uint8_t *message, size_t message_len, const uint8_t *secret_key) {
+OQS_API OQS_STATUS OQS_SIG_mayo_1_sign(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t *sk) {
 #if defined(OQS_ENABLE_SIG_mayo_1_avx2)
 #if defined(OQS_DIST_BUILD)
-	if (OQS_CPU_has_extension(OQS_CPU_EXT_AVX2)) {
-#endif /* OQS_DIST_BUILD */
-		return (OQS_STATUS) pqmayo_MAYO_1_avx2_crypto_sign_signature(signature, signature_len, message, message_len, secret_key);
+    if (OQS_CPU_has_extension(OQS_CPU_EXT_AVX2)) {
+#endif
+        return (OQS_STATUS)pqmayo_MAYO_1_avx2_crypto_sign_signature(sig, siglen, m, mlen, sk);
 #if defined(OQS_DIST_BUILD)
-	} else {
-		return (OQS_STATUS) pqmayo_MAYO_1_opt_crypto_sign_signature(signature, signature_len, message, message_len, secret_key);
-	}
-#endif /* OQS_DIST_BUILD */
+    } else return (OQS_STATUS)pqmayo_MAYO_1_opt_crypto_sign_signature(sig, siglen, m, mlen, sk);
+#endif
 #elif defined(OQS_ENABLE_SIG_mayo_1_neon)
 #if defined(OQS_DIST_BUILD)
-	if (OQS_CPU_has_extension(OQS_CPU_EXT_ARM_NEON)) {
-#endif /* OQS_DIST_BUILD */
-		return (OQS_STATUS) pqmayo_MAYO_1_neon_crypto_sign_signature(signature, signature_len, message, message_len, secret_key);
+    if (OQS_CPU_has_extension(OQS_CPU_EXT_ARM_NEON)) {
+#endif
+        return (OQS_STATUS)pqmayo_MAYO_1_neon_crypto_sign_signature(sig, siglen, m, mlen, sk);
 #if defined(OQS_DIST_BUILD)
-	} else {
-		return (OQS_STATUS) pqmayo_MAYO_1_opt_crypto_sign_signature(signature, signature_len, message, message_len, secret_key);
-	}
-#endif /* OQS_DIST_BUILD */
+    } else return (OQS_STATUS)pqmayo_MAYO_1_opt_crypto_sign_signature(sig, siglen, m, mlen, sk);
+#endif
 #else
-	return (OQS_STATUS) pqmayo_MAYO_1_opt_crypto_sign_signature(signature, signature_len, message, message_len, secret_key);
+    return (OQS_STATUS)pqmayo_MAYO_1_opt_crypto_sign_signature(sig, siglen, m, mlen, sk);
 #endif
 }
 
-OQS_API OQS_STATUS OQS_SIG_mayo_1_verify(const uint8_t *message, size_t message_len, const uint8_t *signature, size_t signature_len, const uint8_t *public_key) {
+OQS_API OQS_STATUS OQS_SIG_mayo_1_verify(const uint8_t *m, size_t mlen, const uint8_t *sig, size_t siglen, const uint8_t *pk) {
 #if defined(OQS_ENABLE_SIG_mayo_1_avx2)
 #if defined(OQS_DIST_BUILD)
-	if (OQS_CPU_has_extension(OQS_CPU_EXT_AVX2)) {
-#endif /* OQS_DIST_BUILD */
-		return (OQS_STATUS) pqmayo_MAYO_1_avx2_crypto_sign_verify(signature, signature_len, message, message_len, public_key);
+    if (OQS_CPU_has_extension(OQS_CPU_EXT_AVX2)) {
+#endif
+        return (OQS_STATUS)pqmayo_MAYO_1_avx2_crypto_sign_verify(sig, siglen, m, mlen, pk);
 #if defined(OQS_DIST_BUILD)
-	} else {
-		return (OQS_STATUS) pqmayo_MAYO_1_opt_crypto_sign_verify(signature, signature_len, message, message_len, public_key);
-	}
-#endif /* OQS_DIST_BUILD */
+    } else return (OQS_STATUS)pqmayo_MAYO_1_opt_crypto_sign_verify(sig, siglen, m, mlen, pk);
+#endif
 #elif defined(OQS_ENABLE_SIG_mayo_1_neon)
 #if defined(OQS_DIST_BUILD)
-	if (OQS_CPU_has_extension(OQS_CPU_EXT_ARM_NEON)) {
-#endif /* OQS_DIST_BUILD */
-		return (OQS_STATUS) pqmayo_MAYO_1_neon_crypto_sign_verify(signature, signature_len, message, message_len, public_key);
+    if (OQS_CPU_has_extension(OQS_CPU_EXT_ARM_NEON)) {
+#endif
+        return (OQS_STATUS)pqmayo_MAYO_1_neon_crypto_sign_verify(sig, siglen, m, mlen, pk);
 #if defined(OQS_DIST_BUILD)
-	} else {
-		return (OQS_STATUS) pqmayo_MAYO_1_opt_crypto_sign_verify(signature, signature_len, message, message_len, public_key);
-	}
-#endif /* OQS_DIST_BUILD */
+    } else return (OQS_STATUS)pqmayo_MAYO_1_opt_crypto_sign_verify(sig, siglen, m, mlen, pk);
+#endif
 #else
-	return (OQS_STATUS) pqmayo_MAYO_1_opt_crypto_sign_verify(signature, signature_len, message, message_len, public_key);
+    return (OQS_STATUS)pqmayo_MAYO_1_opt_crypto_sign_verify(sig, siglen, m, mlen, pk);
 #endif
 }
 
-OQS_API OQS_STATUS OQS_SIG_mayo_1_sign_with_ctx_str(uint8_t *signature, size_t *signature_len, const uint8_t *message, size_t message_len, const uint8_t *ctx_str, size_t ctx_str_len, const uint8_t *secret_key) {
-	if (ctx_str == NULL && ctx_str_len == 0) {
-		return OQS_SIG_mayo_1_sign(signature, signature_len, message, message_len, secret_key);
-	} else {
-		return OQS_ERROR;
-	}
+OQS_API OQS_STATUS OQS_SIG_mayo_1_sign_with_ctx_str(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t *ctx, size_t ctxlen, const uint8_t *sk) {
+    return (ctx == NULL && ctxlen == 0) ? OQS_SIG_mayo_1_sign(sig, siglen, m, mlen, sk) : OQS_ERROR;
+}
+OQS_API OQS_STATUS OQS_SIG_mayo_1_verify_with_ctx_str(const uint8_t *m, size_t mlen, const uint8_t *sig, size_t siglen, const uint8_t *ctx, size_t ctxlen, const uint8_t *pk) {
+    return (ctx == NULL && ctxlen == 0) ? OQS_SIG_mayo_1_verify(m, mlen, sig, siglen, pk) : OQS_ERROR;
 }
 
-OQS_API OQS_STATUS OQS_SIG_mayo_1_verify_with_ctx_str(const uint8_t *message, size_t message_len, const uint8_t *signature, size_t signature_len, const uint8_t *ctx_str, size_t ctx_str_len, const uint8_t *public_key) {
-	if (ctx_str == NULL && ctx_str_len == 0) {
-		return OQS_SIG_mayo_1_verify(message, message_len, signature, signature_len, public_key);
-	} else {
-		return OQS_ERROR;
-	}
+/* Genuine upstream reference path. No CPU dispatch or fallback. */
+OQS_SIG *OQS_SIG_mayo_1_ref_new(void) {
+    return mayo_1_new_common("MAYO-1-ref", OQS_SIG_mayo_1_ref_keypair,
+        OQS_SIG_mayo_1_ref_sign, OQS_SIG_mayo_1_ref_verify,
+        OQS_SIG_mayo_1_ref_sign_with_ctx_str, OQS_SIG_mayo_1_ref_verify_with_ctx_str);
 }
+OQS_API OQS_STATUS OQS_SIG_mayo_1_ref_keypair(uint8_t *pk, uint8_t *sk) {
+    return (OQS_STATUS)mayo_keypair(&MAYO_1, pk, sk);
+}
+OQS_API OQS_STATUS OQS_SIG_mayo_1_ref_sign(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t *sk) {
+    return (OQS_STATUS)mayo_sign_signature(&MAYO_1, sig, siglen, m, mlen, sk);
+}
+OQS_API OQS_STATUS OQS_SIG_mayo_1_ref_verify(const uint8_t *m, size_t mlen, const uint8_t *sig, size_t siglen, const uint8_t *pk) {
+    if (siglen != OQS_SIG_mayo_1_length_signature) return OQS_ERROR;
+    return (OQS_STATUS)mayo_verify(&MAYO_1, m, mlen, sig, pk);
+}
+OQS_API OQS_STATUS OQS_SIG_mayo_1_ref_sign_with_ctx_str(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t *ctx, size_t ctxlen, const uint8_t *sk) {
+    return (ctx == NULL && ctxlen == 0) ? OQS_SIG_mayo_1_ref_sign(sig, siglen, m, mlen, sk) : OQS_ERROR;
+}
+OQS_API OQS_STATUS OQS_SIG_mayo_1_ref_verify_with_ctx_str(const uint8_t *m, size_t mlen, const uint8_t *sig, size_t siglen, const uint8_t *ctx, size_t ctxlen, const uint8_t *pk) {
+    return (ctx == NULL && ctxlen == 0) ? OQS_SIG_mayo_1_ref_verify(m, mlen, sig, siglen, pk) : OQS_ERROR;
+}
+
+#if defined(OQS_ENABLE_SIG_mayo_1_avx2)
+/* Direct AVX2 path. No runtime dispatch or fallback. */
+OQS_SIG *OQS_SIG_mayo_1_avx2_new(void) {
+    return mayo_1_new_common("MAYO-1-avx2", OQS_SIG_mayo_1_avx2_keypair,
+        OQS_SIG_mayo_1_avx2_sign, OQS_SIG_mayo_1_avx2_verify,
+        OQS_SIG_mayo_1_avx2_sign_with_ctx_str, OQS_SIG_mayo_1_avx2_verify_with_ctx_str);
+}
+OQS_API OQS_STATUS OQS_SIG_mayo_1_avx2_keypair(uint8_t *pk, uint8_t *sk) {
+    return (OQS_STATUS)pqmayo_MAYO_1_avx2_crypto_sign_keypair(pk, sk);
+}
+OQS_API OQS_STATUS OQS_SIG_mayo_1_avx2_sign(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t *sk) {
+    return (OQS_STATUS)pqmayo_MAYO_1_avx2_crypto_sign_signature(sig, siglen, m, mlen, sk);
+}
+OQS_API OQS_STATUS OQS_SIG_mayo_1_avx2_verify(const uint8_t *m, size_t mlen, const uint8_t *sig, size_t siglen, const uint8_t *pk) {
+    return (OQS_STATUS)pqmayo_MAYO_1_avx2_crypto_sign_verify(sig, siglen, m, mlen, pk);
+}
+OQS_API OQS_STATUS OQS_SIG_mayo_1_avx2_sign_with_ctx_str(uint8_t *sig, size_t *siglen, const uint8_t *m, size_t mlen, const uint8_t *ctx, size_t ctxlen, const uint8_t *sk) {
+    return (ctx == NULL && ctxlen == 0) ? OQS_SIG_mayo_1_avx2_sign(sig, siglen, m, mlen, sk) : OQS_ERROR;
+}
+OQS_API OQS_STATUS OQS_SIG_mayo_1_avx2_verify_with_ctx_str(const uint8_t *m, size_t mlen, const uint8_t *sig, size_t siglen, const uint8_t *ctx, size_t ctxlen, const uint8_t *pk) {
+    return (ctx == NULL && ctxlen == 0) ? OQS_SIG_mayo_1_avx2_verify(m, mlen, sig, siglen, pk) : OQS_ERROR;
+}
+#endif
+
 #endif

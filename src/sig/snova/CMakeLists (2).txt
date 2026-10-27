@@ -1,0 +1,1480 @@
+# SPDX-License-Identifier: MIT
+
+# SNOVA 2.3 local Round-2 integration.
+# Upstream commit:
+#   9da14981336ede257c41ef53cc069989051e8181
+#
+# The cryptographic implementation directories are copied directly from
+# upstream dist/ref and dist/avx2 generation output.  This CMake file does not
+# modify candidate source.  Compile-time symbol renaming is used only to avoid
+# collisions between independent parameter-set translation units.
+
+set(_SNOVA_OBJS "")
+
+if(OQS_ENABLE_SIG_snova_SNOVA_24_5_16_4 OR OQS_ENABLE_SIG_snova_SNOVA_24_5_16_4_avx2)
+    add_library(snova_SNOVA_24_5_16_4_wrapper OBJECT sig_snova_SNOVA_24_5_16_4.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_24_5_16_4_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_24_5_16_4)
+    add_library(snova_SNOVA_24_5_16_4_ref OBJECT
+        snova_SNOVA_24_5_16_4_ref/snova_ref.c
+        snova_SNOVA_24_5_16_4_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_24_5_16_4_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_24_5_16_4_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_24_5_16_4_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=24
+        SNOVA_o=5
+        SNOVA_q=16
+        SNOVA_l=4
+        gf_multtab=snova_24_5_16_4_ref_gf_multtab
+        gf_invtab=snova_24_5_16_4_ref_gf_invtab
+        gf_addtab=snova_24_5_16_4_ref_gf_addtab
+        gf_S=snova_24_5_16_4_ref_gf_S
+        expand_public=snova_24_5_16_4_ref_expand_public
+        fixed_abq=snova_24_5_16_4_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_24_5_16_4_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_24_5_16_4_avx2)
+    add_library(snova_SNOVA_24_5_16_4_avx2 OBJECT
+        snova_SNOVA_24_5_16_4_avx2/snova_opt_16.c
+        snova_SNOVA_24_5_16_4_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_24_5_16_4_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_24_5_16_4_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_24_5_16_4_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_24_5_16_4_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=24
+        SNOVA_o=5
+        SNOVA_q=16
+        SNOVA_l=4
+        gf_Sx=snova_24_5_16_4_avx2_gf_Sx
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_24_5_16_4_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_24_5_16_4_AES OR OQS_ENABLE_SIG_snova_SNOVA_24_5_16_4_AES_avx2)
+    add_library(snova_SNOVA_24_5_16_4_AES_wrapper OBJECT sig_snova_SNOVA_24_5_16_4_AES.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_24_5_16_4_AES_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_24_5_16_4_AES)
+    add_library(snova_SNOVA_24_5_16_4_AES_ref OBJECT
+        snova_SNOVA_24_5_16_4_AES_ref/snova_ref.c
+        snova_SNOVA_24_5_16_4_AES_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_24_5_16_4_AES_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_24_5_16_4_AES_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_24_5_16_4_AES_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=24
+        SNOVA_o=5
+        SNOVA_q=16
+        SNOVA_l=4
+        AESCTR
+        gf_multtab=snova_24_5_16_4_aes_ref_gf_multtab
+        gf_invtab=snova_24_5_16_4_aes_ref_gf_invtab
+        gf_addtab=snova_24_5_16_4_aes_ref_gf_addtab
+        gf_S=snova_24_5_16_4_aes_ref_gf_S
+        expand_public=snova_24_5_16_4_aes_ref_expand_public
+        fixed_abq=snova_24_5_16_4_aes_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_24_5_16_4_AES_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_24_5_16_4_AES_avx2)
+    add_library(snova_SNOVA_24_5_16_4_AES_avx2 OBJECT
+        snova_SNOVA_24_5_16_4_AES_avx2/snova_opt_16.c
+        snova_SNOVA_24_5_16_4_AES_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_24_5_16_4_AES_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_24_5_16_4_AES_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_24_5_16_4_AES_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_24_5_16_4_AES_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=24
+        SNOVA_o=5
+        SNOVA_q=16
+        SNOVA_l=4
+        AESCTR
+        gf_Sx=snova_24_5_16_4_aes_avx2_gf_Sx
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_24_5_16_4_AES_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_4_16_4x5 OR OQS_ENABLE_SIG_snova_SNOVA_28_4_16_4x5_avx2)
+    add_library(snova_SNOVA_28_4_16_4x5_wrapper OBJECT sig_snova_SNOVA_28_4_16_4x5.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_4_16_4x5_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_4_16_4x5)
+    add_library(snova_SNOVA_28_4_16_4x5_ref OBJECT
+        snova_SNOVA_28_4_16_4x5_ref/snova_ref.c
+        snova_SNOVA_28_4_16_4x5_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_28_4_16_4x5_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_28_4_16_4x5_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_28_4_16_4x5_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=28
+        SNOVA_o=4
+        SNOVA_q=16
+        SNOVA_l=4
+        SNOVA_r=5
+        gf_multtab=snova_28_4_16_4x5_ref_gf_multtab
+        gf_invtab=snova_28_4_16_4x5_ref_gf_invtab
+        gf_addtab=snova_28_4_16_4x5_ref_gf_addtab
+        gf_S=snova_28_4_16_4x5_ref_gf_S
+        expand_public=snova_28_4_16_4x5_ref_expand_public
+        fixed_abq=snova_28_4_16_4x5_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_4_16_4x5_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_4_16_4x5_avx2)
+    add_library(snova_SNOVA_28_4_16_4x5_avx2 OBJECT
+        snova_SNOVA_28_4_16_4x5_avx2/snova_rect_16.c
+        snova_SNOVA_28_4_16_4x5_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_28_4_16_4x5_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_28_4_16_4x5_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_28_4_16_4x5_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_28_4_16_4x5_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=28
+        SNOVA_o=4
+        SNOVA_q=16
+        SNOVA_l=4
+        SNOVA_r=5
+        gf_Sx=snova_28_4_16_4x5_avx2_gf_Sx
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_4_16_4x5_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_4_16_4x5_AES OR OQS_ENABLE_SIG_snova_SNOVA_28_4_16_4x5_AES_avx2)
+    add_library(snova_SNOVA_28_4_16_4x5_AES_wrapper OBJECT sig_snova_SNOVA_28_4_16_4x5_AES.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_4_16_4x5_AES_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_4_16_4x5_AES)
+    add_library(snova_SNOVA_28_4_16_4x5_AES_ref OBJECT
+        snova_SNOVA_28_4_16_4x5_AES_ref/snova_ref.c
+        snova_SNOVA_28_4_16_4x5_AES_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_28_4_16_4x5_AES_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_28_4_16_4x5_AES_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_28_4_16_4x5_AES_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=28
+        SNOVA_o=4
+        SNOVA_q=16
+        SNOVA_l=4
+        SNOVA_r=5
+        AESCTR
+        gf_multtab=snova_28_4_16_4x5_aes_ref_gf_multtab
+        gf_invtab=snova_28_4_16_4x5_aes_ref_gf_invtab
+        gf_addtab=snova_28_4_16_4x5_aes_ref_gf_addtab
+        gf_S=snova_28_4_16_4x5_aes_ref_gf_S
+        expand_public=snova_28_4_16_4x5_aes_ref_expand_public
+        fixed_abq=snova_28_4_16_4x5_aes_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_4_16_4x5_AES_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_4_16_4x5_AES_avx2)
+    add_library(snova_SNOVA_28_4_16_4x5_AES_avx2 OBJECT
+        snova_SNOVA_28_4_16_4x5_AES_avx2/snova_rect_16.c
+        snova_SNOVA_28_4_16_4x5_AES_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_28_4_16_4x5_AES_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_28_4_16_4x5_AES_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_28_4_16_4x5_AES_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_28_4_16_4x5_AES_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=28
+        SNOVA_o=4
+        SNOVA_q=16
+        SNOVA_l=4
+        SNOVA_r=5
+        AESCTR
+        gf_Sx=snova_28_4_16_4x5_aes_avx2_gf_Sx
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_4_16_4x5_AES_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_4_19_4x5 OR OQS_ENABLE_SIG_snova_SNOVA_28_4_19_4x5_avx2)
+    add_library(snova_SNOVA_28_4_19_4x5_wrapper OBJECT sig_snova_SNOVA_28_4_19_4x5.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_4_19_4x5_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_4_19_4x5)
+    add_library(snova_SNOVA_28_4_19_4x5_ref OBJECT
+        snova_SNOVA_28_4_19_4x5_ref/snova_ref.c
+        snova_SNOVA_28_4_19_4x5_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_28_4_19_4x5_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_28_4_19_4x5_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_28_4_19_4x5_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=28
+        SNOVA_o=4
+        SNOVA_q=19
+        SNOVA_l=4
+        SNOVA_r=5
+        gf_multtab=snova_28_4_19_4x5_ref_gf_multtab
+        gf_invtab=snova_28_4_19_4x5_ref_gf_invtab
+        gf_addtab=snova_28_4_19_4x5_ref_gf_addtab
+        gf_S=snova_28_4_19_4x5_ref_gf_S
+        expand_public=snova_28_4_19_4x5_ref_expand_public
+        fixed_abq=snova_28_4_19_4x5_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_4_19_4x5_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_4_19_4x5_avx2)
+    add_library(snova_SNOVA_28_4_19_4x5_avx2 OBJECT
+        snova_SNOVA_28_4_19_4x5_avx2/snova_rect_q.c
+        snova_SNOVA_28_4_19_4x5_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_28_4_19_4x5_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_28_4_19_4x5_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_28_4_19_4x5_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_28_4_19_4x5_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=28
+        SNOVA_o=4
+        SNOVA_q=19
+        SNOVA_l=4
+        SNOVA_r=5
+        gf_S=snova_28_4_19_4x5_avx2_gf_S
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_4_19_4x5_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_4_19_4x5_AES OR OQS_ENABLE_SIG_snova_SNOVA_28_4_19_4x5_AES_avx2)
+    add_library(snova_SNOVA_28_4_19_4x5_AES_wrapper OBJECT sig_snova_SNOVA_28_4_19_4x5_AES.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_4_19_4x5_AES_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_4_19_4x5_AES)
+    add_library(snova_SNOVA_28_4_19_4x5_AES_ref OBJECT
+        snova_SNOVA_28_4_19_4x5_AES_ref/snova_ref.c
+        snova_SNOVA_28_4_19_4x5_AES_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_28_4_19_4x5_AES_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_28_4_19_4x5_AES_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_28_4_19_4x5_AES_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=28
+        SNOVA_o=4
+        SNOVA_q=19
+        SNOVA_l=4
+        SNOVA_r=5
+        AESCTR
+        gf_multtab=snova_28_4_19_4x5_aes_ref_gf_multtab
+        gf_invtab=snova_28_4_19_4x5_aes_ref_gf_invtab
+        gf_addtab=snova_28_4_19_4x5_aes_ref_gf_addtab
+        gf_S=snova_28_4_19_4x5_aes_ref_gf_S
+        expand_public=snova_28_4_19_4x5_aes_ref_expand_public
+        fixed_abq=snova_28_4_19_4x5_aes_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_4_19_4x5_AES_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_4_19_4x5_AES_avx2)
+    add_library(snova_SNOVA_28_4_19_4x5_AES_avx2 OBJECT
+        snova_SNOVA_28_4_19_4x5_AES_avx2/snova_rect_q.c
+        snova_SNOVA_28_4_19_4x5_AES_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_28_4_19_4x5_AES_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_28_4_19_4x5_AES_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_28_4_19_4x5_AES_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_28_4_19_4x5_AES_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=28
+        SNOVA_o=4
+        SNOVA_q=19
+        SNOVA_l=4
+        SNOVA_r=5
+        AESCTR
+        gf_S=snova_28_4_19_4x5_aes_avx2_gf_S
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_4_19_4x5_AES_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_5_19_4 OR OQS_ENABLE_SIG_snova_SNOVA_28_5_19_4_avx2)
+    add_library(snova_SNOVA_28_5_19_4_wrapper OBJECT sig_snova_SNOVA_28_5_19_4.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_5_19_4_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_5_19_4)
+    add_library(snova_SNOVA_28_5_19_4_ref OBJECT
+        snova_SNOVA_28_5_19_4_ref/snova_ref.c
+        snova_SNOVA_28_5_19_4_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_28_5_19_4_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_28_5_19_4_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_28_5_19_4_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=28
+        SNOVA_o=5
+        SNOVA_q=19
+        SNOVA_l=4
+        gf_multtab=snova_28_5_19_4_ref_gf_multtab
+        gf_invtab=snova_28_5_19_4_ref_gf_invtab
+        gf_addtab=snova_28_5_19_4_ref_gf_addtab
+        gf_S=snova_28_5_19_4_ref_gf_S
+        expand_public=snova_28_5_19_4_ref_expand_public
+        fixed_abq=snova_28_5_19_4_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_5_19_4_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_5_19_4_avx2)
+    add_library(snova_SNOVA_28_5_19_4_avx2 OBJECT
+        snova_SNOVA_28_5_19_4_avx2/snova_opt_q.c
+        snova_SNOVA_28_5_19_4_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_28_5_19_4_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_28_5_19_4_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_28_5_19_4_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_28_5_19_4_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=28
+        SNOVA_o=5
+        SNOVA_q=19
+        SNOVA_l=4
+        gf_S=snova_28_5_19_4_avx2_gf_S
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_5_19_4_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_5_19_4_AES OR OQS_ENABLE_SIG_snova_SNOVA_28_5_19_4_AES_avx2)
+    add_library(snova_SNOVA_28_5_19_4_AES_wrapper OBJECT sig_snova_SNOVA_28_5_19_4_AES.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_5_19_4_AES_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_5_19_4_AES)
+    add_library(snova_SNOVA_28_5_19_4_AES_ref OBJECT
+        snova_SNOVA_28_5_19_4_AES_ref/snova_ref.c
+        snova_SNOVA_28_5_19_4_AES_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_28_5_19_4_AES_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_28_5_19_4_AES_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_28_5_19_4_AES_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=28
+        SNOVA_o=5
+        SNOVA_q=19
+        SNOVA_l=4
+        AESCTR
+        gf_multtab=snova_28_5_19_4_aes_ref_gf_multtab
+        gf_invtab=snova_28_5_19_4_aes_ref_gf_invtab
+        gf_addtab=snova_28_5_19_4_aes_ref_gf_addtab
+        gf_S=snova_28_5_19_4_aes_ref_gf_S
+        expand_public=snova_28_5_19_4_aes_ref_expand_public
+        fixed_abq=snova_28_5_19_4_aes_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_5_19_4_AES_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_28_5_19_4_AES_avx2)
+    add_library(snova_SNOVA_28_5_19_4_AES_avx2 OBJECT
+        snova_SNOVA_28_5_19_4_AES_avx2/snova_opt_q.c
+        snova_SNOVA_28_5_19_4_AES_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_28_5_19_4_AES_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_28_5_19_4_AES_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_28_5_19_4_AES_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_28_5_19_4_AES_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=28
+        SNOVA_o=5
+        SNOVA_q=19
+        SNOVA_l=4
+        AESCTR
+        gf_S=snova_28_5_19_4_aes_avx2_gf_S
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_28_5_19_4_AES_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_48_16_19_2 OR OQS_ENABLE_SIG_snova_SNOVA_48_16_19_2_avx2)
+    add_library(snova_SNOVA_48_16_19_2_wrapper OBJECT sig_snova_SNOVA_48_16_19_2.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_48_16_19_2_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_48_16_19_2)
+    add_library(snova_SNOVA_48_16_19_2_ref OBJECT
+        snova_SNOVA_48_16_19_2_ref/snova_ref.c
+        snova_SNOVA_48_16_19_2_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_48_16_19_2_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_48_16_19_2_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_48_16_19_2_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=48
+        SNOVA_o=16
+        SNOVA_q=19
+        SNOVA_l=2
+        gf_multtab=snova_48_16_19_2_ref_gf_multtab
+        gf_invtab=snova_48_16_19_2_ref_gf_invtab
+        gf_addtab=snova_48_16_19_2_ref_gf_addtab
+        gf_S=snova_48_16_19_2_ref_gf_S
+        expand_public=snova_48_16_19_2_ref_expand_public
+        fixed_abq=snova_48_16_19_2_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_48_16_19_2_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_48_16_19_2_avx2)
+    add_library(snova_SNOVA_48_16_19_2_avx2 OBJECT
+        snova_SNOVA_48_16_19_2_avx2/snova_opt_q2.c
+        snova_SNOVA_48_16_19_2_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_48_16_19_2_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_48_16_19_2_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_48_16_19_2_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_48_16_19_2_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=48
+        SNOVA_o=16
+        SNOVA_q=19
+        SNOVA_l=2
+        gf_S=snova_48_16_19_2_avx2_gf_S
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_48_16_19_2_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_48_16_19_2_AES OR OQS_ENABLE_SIG_snova_SNOVA_48_16_19_2_AES_avx2)
+    add_library(snova_SNOVA_48_16_19_2_AES_wrapper OBJECT sig_snova_SNOVA_48_16_19_2_AES.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_48_16_19_2_AES_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_48_16_19_2_AES)
+    add_library(snova_SNOVA_48_16_19_2_AES_ref OBJECT
+        snova_SNOVA_48_16_19_2_AES_ref/snova_ref.c
+        snova_SNOVA_48_16_19_2_AES_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_48_16_19_2_AES_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_48_16_19_2_AES_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_48_16_19_2_AES_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=48
+        SNOVA_o=16
+        SNOVA_q=19
+        SNOVA_l=2
+        AESCTR
+        gf_multtab=snova_48_16_19_2_aes_ref_gf_multtab
+        gf_invtab=snova_48_16_19_2_aes_ref_gf_invtab
+        gf_addtab=snova_48_16_19_2_aes_ref_gf_addtab
+        gf_S=snova_48_16_19_2_aes_ref_gf_S
+        expand_public=snova_48_16_19_2_aes_ref_expand_public
+        fixed_abq=snova_48_16_19_2_aes_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_48_16_19_2_AES_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_48_16_19_2_AES_avx2)
+    add_library(snova_SNOVA_48_16_19_2_AES_avx2 OBJECT
+        snova_SNOVA_48_16_19_2_AES_avx2/snova_opt_q2.c
+        snova_SNOVA_48_16_19_2_AES_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_48_16_19_2_AES_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_48_16_19_2_AES_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_48_16_19_2_AES_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_48_16_19_2_AES_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=48
+        SNOVA_o=16
+        SNOVA_q=19
+        SNOVA_l=2
+        AESCTR
+        gf_S=snova_48_16_19_2_aes_avx2_gf_S
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_48_16_19_2_AES_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_48_17_16_2 OR OQS_ENABLE_SIG_snova_SNOVA_48_17_16_2_avx2)
+    add_library(snova_SNOVA_48_17_16_2_wrapper OBJECT sig_snova_SNOVA_48_17_16_2.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_48_17_16_2_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_48_17_16_2)
+    add_library(snova_SNOVA_48_17_16_2_ref OBJECT
+        snova_SNOVA_48_17_16_2_ref/snova_ref.c
+        snova_SNOVA_48_17_16_2_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_48_17_16_2_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_48_17_16_2_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_48_17_16_2_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=48
+        SNOVA_o=17
+        SNOVA_q=16
+        SNOVA_l=2
+        gf_multtab=snova_48_17_16_2_ref_gf_multtab
+        gf_invtab=snova_48_17_16_2_ref_gf_invtab
+        gf_addtab=snova_48_17_16_2_ref_gf_addtab
+        gf_S=snova_48_17_16_2_ref_gf_S
+        expand_public=snova_48_17_16_2_ref_expand_public
+        fixed_abq=snova_48_17_16_2_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_48_17_16_2_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_48_17_16_2_avx2)
+    add_library(snova_SNOVA_48_17_16_2_avx2 OBJECT
+        snova_SNOVA_48_17_16_2_avx2/snova_avx2_16.c
+        snova_SNOVA_48_17_16_2_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_48_17_16_2_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_48_17_16_2_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_48_17_16_2_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_48_17_16_2_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=48
+        SNOVA_o=17
+        SNOVA_q=16
+        SNOVA_l=2
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_48_17_16_2_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_48_17_16_2_AES OR OQS_ENABLE_SIG_snova_SNOVA_48_17_16_2_AES_avx2)
+    add_library(snova_SNOVA_48_17_16_2_AES_wrapper OBJECT sig_snova_SNOVA_48_17_16_2_AES.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_48_17_16_2_AES_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_48_17_16_2_AES)
+    add_library(snova_SNOVA_48_17_16_2_AES_ref OBJECT
+        snova_SNOVA_48_17_16_2_AES_ref/snova_ref.c
+        snova_SNOVA_48_17_16_2_AES_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_48_17_16_2_AES_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_48_17_16_2_AES_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_48_17_16_2_AES_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=48
+        SNOVA_o=17
+        SNOVA_q=16
+        SNOVA_l=2
+        AESCTR
+        gf_multtab=snova_48_17_16_2_aes_ref_gf_multtab
+        gf_invtab=snova_48_17_16_2_aes_ref_gf_invtab
+        gf_addtab=snova_48_17_16_2_aes_ref_gf_addtab
+        gf_S=snova_48_17_16_2_aes_ref_gf_S
+        expand_public=snova_48_17_16_2_aes_ref_expand_public
+        fixed_abq=snova_48_17_16_2_aes_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_48_17_16_2_AES_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_48_17_16_2_AES_avx2)
+    add_library(snova_SNOVA_48_17_16_2_AES_avx2 OBJECT
+        snova_SNOVA_48_17_16_2_AES_avx2/snova_avx2_16.c
+        snova_SNOVA_48_17_16_2_AES_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_48_17_16_2_AES_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_48_17_16_2_AES_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_48_17_16_2_AES_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_48_17_16_2_AES_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=48
+        SNOVA_o=17
+        SNOVA_q=16
+        SNOVA_l=2
+        AESCTR
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_48_17_16_2_AES_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_37_8_16_4 OR OQS_ENABLE_SIG_snova_SNOVA_37_8_16_4_avx2)
+    add_library(snova_SNOVA_37_8_16_4_wrapper OBJECT sig_snova_SNOVA_37_8_16_4.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_37_8_16_4_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_37_8_16_4)
+    add_library(snova_SNOVA_37_8_16_4_ref OBJECT
+        snova_SNOVA_37_8_16_4_ref/snova_ref.c
+        snova_SNOVA_37_8_16_4_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_37_8_16_4_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_37_8_16_4_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_37_8_16_4_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=37
+        SNOVA_o=8
+        SNOVA_q=16
+        SNOVA_l=4
+        gf_multtab=snova_37_8_16_4_ref_gf_multtab
+        gf_invtab=snova_37_8_16_4_ref_gf_invtab
+        gf_addtab=snova_37_8_16_4_ref_gf_addtab
+        gf_S=snova_37_8_16_4_ref_gf_S
+        expand_public=snova_37_8_16_4_ref_expand_public
+        fixed_abq=snova_37_8_16_4_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_37_8_16_4_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_37_8_16_4_avx2)
+    add_library(snova_SNOVA_37_8_16_4_avx2 OBJECT
+        snova_SNOVA_37_8_16_4_avx2/snova_opt_16.c
+        snova_SNOVA_37_8_16_4_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_37_8_16_4_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_37_8_16_4_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_37_8_16_4_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_37_8_16_4_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=37
+        SNOVA_o=8
+        SNOVA_q=16
+        SNOVA_l=4
+        gf_Sx=snova_37_8_16_4_avx2_gf_Sx
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_37_8_16_4_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_37_8_16_4_AES OR OQS_ENABLE_SIG_snova_SNOVA_37_8_16_4_AES_avx2)
+    add_library(snova_SNOVA_37_8_16_4_AES_wrapper OBJECT sig_snova_SNOVA_37_8_16_4_AES.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_37_8_16_4_AES_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_37_8_16_4_AES)
+    add_library(snova_SNOVA_37_8_16_4_AES_ref OBJECT
+        snova_SNOVA_37_8_16_4_AES_ref/snova_ref.c
+        snova_SNOVA_37_8_16_4_AES_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_37_8_16_4_AES_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_37_8_16_4_AES_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_37_8_16_4_AES_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=37
+        SNOVA_o=8
+        SNOVA_q=16
+        SNOVA_l=4
+        AESCTR
+        gf_multtab=snova_37_8_16_4_aes_ref_gf_multtab
+        gf_invtab=snova_37_8_16_4_aes_ref_gf_invtab
+        gf_addtab=snova_37_8_16_4_aes_ref_gf_addtab
+        gf_S=snova_37_8_16_4_aes_ref_gf_S
+        expand_public=snova_37_8_16_4_aes_ref_expand_public
+        fixed_abq=snova_37_8_16_4_aes_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_37_8_16_4_AES_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_37_8_16_4_AES_avx2)
+    add_library(snova_SNOVA_37_8_16_4_AES_avx2 OBJECT
+        snova_SNOVA_37_8_16_4_AES_avx2/snova_opt_16.c
+        snova_SNOVA_37_8_16_4_AES_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_37_8_16_4_AES_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_37_8_16_4_AES_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_37_8_16_4_AES_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_37_8_16_4_AES_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=37
+        SNOVA_o=8
+        SNOVA_q=16
+        SNOVA_l=4
+        AESCTR
+        gf_Sx=snova_37_8_16_4_aes_avx2_gf_Sx
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_37_8_16_4_AES_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_38_5_16_4x5 OR OQS_ENABLE_SIG_snova_SNOVA_38_5_16_4x5_avx2)
+    add_library(snova_SNOVA_38_5_16_4x5_wrapper OBJECT sig_snova_SNOVA_38_5_16_4x5.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_38_5_16_4x5_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_38_5_16_4x5)
+    add_library(snova_SNOVA_38_5_16_4x5_ref OBJECT
+        snova_SNOVA_38_5_16_4x5_ref/snova_ref.c
+        snova_SNOVA_38_5_16_4x5_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_38_5_16_4x5_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_38_5_16_4x5_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_38_5_16_4x5_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=38
+        SNOVA_o=5
+        SNOVA_q=16
+        SNOVA_l=4
+        SNOVA_r=5
+        gf_multtab=snova_38_5_16_4x5_ref_gf_multtab
+        gf_invtab=snova_38_5_16_4x5_ref_gf_invtab
+        gf_addtab=snova_38_5_16_4x5_ref_gf_addtab
+        gf_S=snova_38_5_16_4x5_ref_gf_S
+        expand_public=snova_38_5_16_4x5_ref_expand_public
+        fixed_abq=snova_38_5_16_4x5_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_38_5_16_4x5_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_38_5_16_4x5_avx2)
+    add_library(snova_SNOVA_38_5_16_4x5_avx2 OBJECT
+        snova_SNOVA_38_5_16_4x5_avx2/snova_rect_16.c
+        snova_SNOVA_38_5_16_4x5_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_38_5_16_4x5_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_38_5_16_4x5_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_38_5_16_4x5_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_38_5_16_4x5_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=38
+        SNOVA_o=5
+        SNOVA_q=16
+        SNOVA_l=4
+        SNOVA_r=5
+        gf_Sx=snova_38_5_16_4x5_avx2_gf_Sx
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_38_5_16_4x5_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_38_5_16_4x5_AES OR OQS_ENABLE_SIG_snova_SNOVA_38_5_16_4x5_AES_avx2)
+    add_library(snova_SNOVA_38_5_16_4x5_AES_wrapper OBJECT sig_snova_SNOVA_38_5_16_4x5_AES.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_38_5_16_4x5_AES_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_38_5_16_4x5_AES)
+    add_library(snova_SNOVA_38_5_16_4x5_AES_ref OBJECT
+        snova_SNOVA_38_5_16_4x5_AES_ref/snova_ref.c
+        snova_SNOVA_38_5_16_4x5_AES_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_38_5_16_4x5_AES_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_38_5_16_4x5_AES_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_38_5_16_4x5_AES_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=38
+        SNOVA_o=5
+        SNOVA_q=16
+        SNOVA_l=4
+        SNOVA_r=5
+        AESCTR
+        gf_multtab=snova_38_5_16_4x5_aes_ref_gf_multtab
+        gf_invtab=snova_38_5_16_4x5_aes_ref_gf_invtab
+        gf_addtab=snova_38_5_16_4x5_aes_ref_gf_addtab
+        gf_S=snova_38_5_16_4x5_aes_ref_gf_S
+        expand_public=snova_38_5_16_4x5_aes_ref_expand_public
+        fixed_abq=snova_38_5_16_4x5_aes_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_38_5_16_4x5_AES_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_38_5_16_4x5_AES_avx2)
+    add_library(snova_SNOVA_38_5_16_4x5_AES_avx2 OBJECT
+        snova_SNOVA_38_5_16_4x5_AES_avx2/snova_rect_16.c
+        snova_SNOVA_38_5_16_4x5_AES_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_38_5_16_4x5_AES_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_38_5_16_4x5_AES_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_38_5_16_4x5_AES_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_38_5_16_4x5_AES_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=38
+        SNOVA_o=5
+        SNOVA_q=16
+        SNOVA_l=4
+        SNOVA_r=5
+        AESCTR
+        gf_Sx=snova_38_5_16_4x5_aes_avx2_gf_Sx
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_38_5_16_4x5_AES_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_38_5_19_4x5 OR OQS_ENABLE_SIG_snova_SNOVA_38_5_19_4x5_avx2)
+    add_library(snova_SNOVA_38_5_19_4x5_wrapper OBJECT sig_snova_SNOVA_38_5_19_4x5.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_38_5_19_4x5_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_38_5_19_4x5)
+    add_library(snova_SNOVA_38_5_19_4x5_ref OBJECT
+        snova_SNOVA_38_5_19_4x5_ref/snova_ref.c
+        snova_SNOVA_38_5_19_4x5_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_38_5_19_4x5_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_38_5_19_4x5_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_38_5_19_4x5_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=38
+        SNOVA_o=5
+        SNOVA_q=19
+        SNOVA_l=4
+        SNOVA_r=5
+        gf_multtab=snova_38_5_19_4x5_ref_gf_multtab
+        gf_invtab=snova_38_5_19_4x5_ref_gf_invtab
+        gf_addtab=snova_38_5_19_4x5_ref_gf_addtab
+        gf_S=snova_38_5_19_4x5_ref_gf_S
+        expand_public=snova_38_5_19_4x5_ref_expand_public
+        fixed_abq=snova_38_5_19_4x5_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_38_5_19_4x5_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_38_5_19_4x5_avx2)
+    add_library(snova_SNOVA_38_5_19_4x5_avx2 OBJECT
+        snova_SNOVA_38_5_19_4x5_avx2/snova_rect_q.c
+        snova_SNOVA_38_5_19_4x5_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_38_5_19_4x5_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_38_5_19_4x5_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_38_5_19_4x5_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_38_5_19_4x5_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=38
+        SNOVA_o=5
+        SNOVA_q=19
+        SNOVA_l=4
+        SNOVA_r=5
+        gf_S=snova_38_5_19_4x5_avx2_gf_S
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_38_5_19_4x5_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_38_5_19_4x5_AES OR OQS_ENABLE_SIG_snova_SNOVA_38_5_19_4x5_AES_avx2)
+    add_library(snova_SNOVA_38_5_19_4x5_AES_wrapper OBJECT sig_snova_SNOVA_38_5_19_4x5_AES.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_38_5_19_4x5_AES_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_38_5_19_4x5_AES)
+    add_library(snova_SNOVA_38_5_19_4x5_AES_ref OBJECT
+        snova_SNOVA_38_5_19_4x5_AES_ref/snova_ref.c
+        snova_SNOVA_38_5_19_4x5_AES_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_38_5_19_4x5_AES_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_38_5_19_4x5_AES_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_38_5_19_4x5_AES_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=38
+        SNOVA_o=5
+        SNOVA_q=19
+        SNOVA_l=4
+        SNOVA_r=5
+        AESCTR
+        gf_multtab=snova_38_5_19_4x5_aes_ref_gf_multtab
+        gf_invtab=snova_38_5_19_4x5_aes_ref_gf_invtab
+        gf_addtab=snova_38_5_19_4x5_aes_ref_gf_addtab
+        gf_S=snova_38_5_19_4x5_aes_ref_gf_S
+        expand_public=snova_38_5_19_4x5_aes_ref_expand_public
+        fixed_abq=snova_38_5_19_4x5_aes_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_38_5_19_4x5_AES_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_38_5_19_4x5_AES_avx2)
+    add_library(snova_SNOVA_38_5_19_4x5_AES_avx2 OBJECT
+        snova_SNOVA_38_5_19_4x5_AES_avx2/snova_rect_q.c
+        snova_SNOVA_38_5_19_4x5_AES_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_38_5_19_4x5_AES_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_38_5_19_4x5_AES_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_38_5_19_4x5_AES_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_38_5_19_4x5_AES_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=38
+        SNOVA_o=5
+        SNOVA_q=19
+        SNOVA_l=4
+        SNOVA_r=5
+        AESCTR
+        gf_S=snova_38_5_19_4x5_aes_avx2_gf_S
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_38_5_19_4x5_AES_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_40_7_19_4 OR OQS_ENABLE_SIG_snova_SNOVA_40_7_19_4_avx2)
+    add_library(snova_SNOVA_40_7_19_4_wrapper OBJECT sig_snova_SNOVA_40_7_19_4.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_40_7_19_4_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_40_7_19_4)
+    add_library(snova_SNOVA_40_7_19_4_ref OBJECT
+        snova_SNOVA_40_7_19_4_ref/snova_ref.c
+        snova_SNOVA_40_7_19_4_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_40_7_19_4_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_40_7_19_4_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_40_7_19_4_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=40
+        SNOVA_o=7
+        SNOVA_q=19
+        SNOVA_l=4
+        gf_multtab=snova_40_7_19_4_ref_gf_multtab
+        gf_invtab=snova_40_7_19_4_ref_gf_invtab
+        gf_addtab=snova_40_7_19_4_ref_gf_addtab
+        gf_S=snova_40_7_19_4_ref_gf_S
+        expand_public=snova_40_7_19_4_ref_expand_public
+        fixed_abq=snova_40_7_19_4_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_40_7_19_4_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_40_7_19_4_avx2)
+    add_library(snova_SNOVA_40_7_19_4_avx2 OBJECT
+        snova_SNOVA_40_7_19_4_avx2/snova_opt_q.c
+        snova_SNOVA_40_7_19_4_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_40_7_19_4_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_40_7_19_4_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_40_7_19_4_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_40_7_19_4_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=40
+        SNOVA_o=7
+        SNOVA_q=19
+        SNOVA_l=4
+        gf_S=snova_40_7_19_4_avx2_gf_S
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_40_7_19_4_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_40_7_19_4_AES OR OQS_ENABLE_SIG_snova_SNOVA_40_7_19_4_AES_avx2)
+    add_library(snova_SNOVA_40_7_19_4_AES_wrapper OBJECT sig_snova_SNOVA_40_7_19_4_AES.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_40_7_19_4_AES_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_40_7_19_4_AES)
+    add_library(snova_SNOVA_40_7_19_4_AES_ref OBJECT
+        snova_SNOVA_40_7_19_4_AES_ref/snova_ref.c
+        snova_SNOVA_40_7_19_4_AES_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_40_7_19_4_AES_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_40_7_19_4_AES_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_40_7_19_4_AES_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=40
+        SNOVA_o=7
+        SNOVA_q=19
+        SNOVA_l=4
+        AESCTR
+        gf_multtab=snova_40_7_19_4_aes_ref_gf_multtab
+        gf_invtab=snova_40_7_19_4_aes_ref_gf_invtab
+        gf_addtab=snova_40_7_19_4_aes_ref_gf_addtab
+        gf_S=snova_40_7_19_4_aes_ref_gf_S
+        expand_public=snova_40_7_19_4_aes_ref_expand_public
+        fixed_abq=snova_40_7_19_4_aes_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_40_7_19_4_AES_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_40_7_19_4_AES_avx2)
+    add_library(snova_SNOVA_40_7_19_4_AES_avx2 OBJECT
+        snova_SNOVA_40_7_19_4_AES_avx2/snova_opt_q.c
+        snova_SNOVA_40_7_19_4_AES_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_40_7_19_4_AES_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_40_7_19_4_AES_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_40_7_19_4_AES_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_40_7_19_4_AES_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=40
+        SNOVA_o=7
+        SNOVA_q=19
+        SNOVA_l=4
+        AESCTR
+        gf_S=snova_40_7_19_4_aes_avx2_gf_S
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_40_7_19_4_AES_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_72_25_16_2 OR OQS_ENABLE_SIG_snova_SNOVA_72_25_16_2_avx2)
+    add_library(snova_SNOVA_72_25_16_2_wrapper OBJECT sig_snova_SNOVA_72_25_16_2.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_72_25_16_2_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_72_25_16_2)
+    add_library(snova_SNOVA_72_25_16_2_ref OBJECT
+        snova_SNOVA_72_25_16_2_ref/snova_ref.c
+        snova_SNOVA_72_25_16_2_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_72_25_16_2_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_72_25_16_2_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_72_25_16_2_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=72
+        SNOVA_o=25
+        SNOVA_q=16
+        SNOVA_l=2
+        gf_multtab=snova_72_25_16_2_ref_gf_multtab
+        gf_invtab=snova_72_25_16_2_ref_gf_invtab
+        gf_addtab=snova_72_25_16_2_ref_gf_addtab
+        gf_S=snova_72_25_16_2_ref_gf_S
+        expand_public=snova_72_25_16_2_ref_expand_public
+        fixed_abq=snova_72_25_16_2_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_72_25_16_2_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_72_25_16_2_avx2)
+    add_library(snova_SNOVA_72_25_16_2_avx2 OBJECT
+        snova_SNOVA_72_25_16_2_avx2/snova_avx2_16.c
+        snova_SNOVA_72_25_16_2_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_72_25_16_2_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_72_25_16_2_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_72_25_16_2_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_72_25_16_2_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=72
+        SNOVA_o=25
+        SNOVA_q=16
+        SNOVA_l=2
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_72_25_16_2_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_72_25_16_2_AES OR OQS_ENABLE_SIG_snova_SNOVA_72_25_16_2_AES_avx2)
+    add_library(snova_SNOVA_72_25_16_2_AES_wrapper OBJECT sig_snova_SNOVA_72_25_16_2_AES.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_72_25_16_2_AES_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_72_25_16_2_AES)
+    add_library(snova_SNOVA_72_25_16_2_AES_ref OBJECT
+        snova_SNOVA_72_25_16_2_AES_ref/snova_ref.c
+        snova_SNOVA_72_25_16_2_AES_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_72_25_16_2_AES_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_72_25_16_2_AES_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_72_25_16_2_AES_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=72
+        SNOVA_o=25
+        SNOVA_q=16
+        SNOVA_l=2
+        AESCTR
+        gf_multtab=snova_72_25_16_2_aes_ref_gf_multtab
+        gf_invtab=snova_72_25_16_2_aes_ref_gf_invtab
+        gf_addtab=snova_72_25_16_2_aes_ref_gf_addtab
+        gf_S=snova_72_25_16_2_aes_ref_gf_S
+        expand_public=snova_72_25_16_2_aes_ref_expand_public
+        fixed_abq=snova_72_25_16_2_aes_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_72_25_16_2_AES_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_72_25_16_2_AES_avx2)
+    add_library(snova_SNOVA_72_25_16_2_AES_avx2 OBJECT
+        snova_SNOVA_72_25_16_2_AES_avx2/snova_avx2_16.c
+        snova_SNOVA_72_25_16_2_AES_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_72_25_16_2_AES_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_72_25_16_2_AES_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_72_25_16_2_AES_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_72_25_16_2_AES_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=72
+        SNOVA_o=25
+        SNOVA_q=16
+        SNOVA_l=2
+        AESCTR
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_72_25_16_2_AES_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_50_9_19_4 OR OQS_ENABLE_SIG_snova_SNOVA_50_9_19_4_avx2)
+    add_library(snova_SNOVA_50_9_19_4_wrapper OBJECT sig_snova_SNOVA_50_9_19_4.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_50_9_19_4_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_50_9_19_4)
+    add_library(snova_SNOVA_50_9_19_4_ref OBJECT
+        snova_SNOVA_50_9_19_4_ref/snova_ref.c
+        snova_SNOVA_50_9_19_4_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_50_9_19_4_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_50_9_19_4_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_50_9_19_4_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=50
+        SNOVA_o=9
+        SNOVA_q=19
+        SNOVA_l=4
+        gf_multtab=snova_50_9_19_4_ref_gf_multtab
+        gf_invtab=snova_50_9_19_4_ref_gf_invtab
+        gf_addtab=snova_50_9_19_4_ref_gf_addtab
+        gf_S=snova_50_9_19_4_ref_gf_S
+        expand_public=snova_50_9_19_4_ref_expand_public
+        fixed_abq=snova_50_9_19_4_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_50_9_19_4_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_50_9_19_4_avx2)
+    add_library(snova_SNOVA_50_9_19_4_avx2 OBJECT
+        snova_SNOVA_50_9_19_4_avx2/snova_opt_q.c
+        snova_SNOVA_50_9_19_4_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_50_9_19_4_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_50_9_19_4_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_50_9_19_4_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_50_9_19_4_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=50
+        SNOVA_o=9
+        SNOVA_q=19
+        SNOVA_l=4
+        gf_S=snova_50_9_19_4_avx2_gf_S
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_50_9_19_4_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_50_9_19_4_AES OR OQS_ENABLE_SIG_snova_SNOVA_50_9_19_4_AES_avx2)
+    add_library(snova_SNOVA_50_9_19_4_AES_wrapper OBJECT sig_snova_SNOVA_50_9_19_4_AES.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_50_9_19_4_AES_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_50_9_19_4_AES)
+    add_library(snova_SNOVA_50_9_19_4_AES_ref OBJECT
+        snova_SNOVA_50_9_19_4_AES_ref/snova_ref.c
+        snova_SNOVA_50_9_19_4_AES_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_50_9_19_4_AES_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_50_9_19_4_AES_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_50_9_19_4_AES_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=50
+        SNOVA_o=9
+        SNOVA_q=19
+        SNOVA_l=4
+        AESCTR
+        gf_multtab=snova_50_9_19_4_aes_ref_gf_multtab
+        gf_invtab=snova_50_9_19_4_aes_ref_gf_invtab
+        gf_addtab=snova_50_9_19_4_aes_ref_gf_addtab
+        gf_S=snova_50_9_19_4_aes_ref_gf_S
+        expand_public=snova_50_9_19_4_aes_ref_expand_public
+        fixed_abq=snova_50_9_19_4_aes_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_50_9_19_4_AES_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_50_9_19_4_AES_avx2)
+    add_library(snova_SNOVA_50_9_19_4_AES_avx2 OBJECT
+        snova_SNOVA_50_9_19_4_AES_avx2/snova_opt_q.c
+        snova_SNOVA_50_9_19_4_AES_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_50_9_19_4_AES_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_50_9_19_4_AES_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_50_9_19_4_AES_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_50_9_19_4_AES_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=50
+        SNOVA_o=9
+        SNOVA_q=19
+        SNOVA_l=4
+        AESCTR
+        gf_S=snova_50_9_19_4_aes_avx2_gf_S
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_50_9_19_4_AES_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_60_10_16_4 OR OQS_ENABLE_SIG_snova_SNOVA_60_10_16_4_avx2)
+    add_library(snova_SNOVA_60_10_16_4_wrapper OBJECT sig_snova_SNOVA_60_10_16_4.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_60_10_16_4_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_60_10_16_4)
+    add_library(snova_SNOVA_60_10_16_4_ref OBJECT
+        snova_SNOVA_60_10_16_4_ref/snova_ref.c
+        snova_SNOVA_60_10_16_4_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_60_10_16_4_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_60_10_16_4_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_60_10_16_4_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=60
+        SNOVA_o=10
+        SNOVA_q=16
+        SNOVA_l=4
+        gf_multtab=snova_60_10_16_4_ref_gf_multtab
+        gf_invtab=snova_60_10_16_4_ref_gf_invtab
+        gf_addtab=snova_60_10_16_4_ref_gf_addtab
+        gf_S=snova_60_10_16_4_ref_gf_S
+        expand_public=snova_60_10_16_4_ref_expand_public
+        fixed_abq=snova_60_10_16_4_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_60_10_16_4_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_60_10_16_4_avx2)
+    add_library(snova_SNOVA_60_10_16_4_avx2 OBJECT
+        snova_SNOVA_60_10_16_4_avx2/snova_opt_16.c
+        snova_SNOVA_60_10_16_4_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_60_10_16_4_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_60_10_16_4_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_60_10_16_4_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_60_10_16_4_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=60
+        SNOVA_o=10
+        SNOVA_q=16
+        SNOVA_l=4
+        gf_Sx=snova_60_10_16_4_avx2_gf_Sx
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_60_10_16_4_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_60_10_16_4_AES OR OQS_ENABLE_SIG_snova_SNOVA_60_10_16_4_AES_avx2)
+    add_library(snova_SNOVA_60_10_16_4_AES_wrapper OBJECT sig_snova_SNOVA_60_10_16_4_AES.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_60_10_16_4_AES_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_60_10_16_4_AES)
+    add_library(snova_SNOVA_60_10_16_4_AES_ref OBJECT
+        snova_SNOVA_60_10_16_4_AES_ref/snova_ref.c
+        snova_SNOVA_60_10_16_4_AES_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_60_10_16_4_AES_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_60_10_16_4_AES_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_60_10_16_4_AES_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=60
+        SNOVA_o=10
+        SNOVA_q=16
+        SNOVA_l=4
+        AESCTR
+        gf_multtab=snova_60_10_16_4_aes_ref_gf_multtab
+        gf_invtab=snova_60_10_16_4_aes_ref_gf_invtab
+        gf_addtab=snova_60_10_16_4_aes_ref_gf_addtab
+        gf_S=snova_60_10_16_4_aes_ref_gf_S
+        expand_public=snova_60_10_16_4_aes_ref_expand_public
+        fixed_abq=snova_60_10_16_4_aes_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_60_10_16_4_AES_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_60_10_16_4_AES_avx2)
+    add_library(snova_SNOVA_60_10_16_4_AES_avx2 OBJECT
+        snova_SNOVA_60_10_16_4_AES_avx2/snova_opt_16.c
+        snova_SNOVA_60_10_16_4_AES_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_60_10_16_4_AES_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_60_10_16_4_AES_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_60_10_16_4_AES_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_60_10_16_4_AES_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=60
+        SNOVA_o=10
+        SNOVA_q=16
+        SNOVA_l=4
+        AESCTR
+        gf_Sx=snova_60_10_16_4_aes_avx2_gf_Sx
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_60_10_16_4_AES_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_97_33_16_2 OR OQS_ENABLE_SIG_snova_SNOVA_97_33_16_2_avx2)
+    add_library(snova_SNOVA_97_33_16_2_wrapper OBJECT sig_snova_SNOVA_97_33_16_2.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_97_33_16_2_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_97_33_16_2)
+    add_library(snova_SNOVA_97_33_16_2_ref OBJECT
+        snova_SNOVA_97_33_16_2_ref/snova_ref.c
+        snova_SNOVA_97_33_16_2_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_97_33_16_2_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_97_33_16_2_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_97_33_16_2_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=97
+        SNOVA_o=33
+        SNOVA_q=16
+        SNOVA_l=2
+        gf_multtab=snova_97_33_16_2_ref_gf_multtab
+        gf_invtab=snova_97_33_16_2_ref_gf_invtab
+        gf_addtab=snova_97_33_16_2_ref_gf_addtab
+        gf_S=snova_97_33_16_2_ref_gf_S
+        expand_public=snova_97_33_16_2_ref_expand_public
+        fixed_abq=snova_97_33_16_2_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_97_33_16_2_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_97_33_16_2_avx2)
+    add_library(snova_SNOVA_97_33_16_2_avx2 OBJECT
+        snova_SNOVA_97_33_16_2_avx2/snova_avx2_16.c
+        snova_SNOVA_97_33_16_2_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_97_33_16_2_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_97_33_16_2_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_97_33_16_2_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_97_33_16_2_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=97
+        SNOVA_o=33
+        SNOVA_q=16
+        SNOVA_l=2
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_97_33_16_2_avx2>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_97_33_16_2_AES OR OQS_ENABLE_SIG_snova_SNOVA_97_33_16_2_AES_avx2)
+    add_library(snova_SNOVA_97_33_16_2_AES_wrapper OBJECT sig_snova_SNOVA_97_33_16_2_AES.c)
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_97_33_16_2_AES_wrapper>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_97_33_16_2_AES)
+    add_library(snova_SNOVA_97_33_16_2_AES_ref OBJECT
+        snova_SNOVA_97_33_16_2_AES_ref/snova_ref.c
+        snova_SNOVA_97_33_16_2_AES_ref/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_97_33_16_2_AES_ref PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_97_33_16_2_AES_ref
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_definitions(snova_SNOVA_97_33_16_2_AES_ref PRIVATE
+        SNOVA_OPT=ref
+        SNOVA_v=97
+        SNOVA_o=33
+        SNOVA_q=16
+        SNOVA_l=2
+        AESCTR
+        gf_multtab=snova_97_33_16_2_aes_ref_gf_multtab
+        gf_invtab=snova_97_33_16_2_aes_ref_gf_invtab
+        gf_addtab=snova_97_33_16_2_aes_ref_gf_addtab
+        gf_S=snova_97_33_16_2_aes_ref_gf_S
+        expand_public=snova_97_33_16_2_aes_ref_expand_public
+        fixed_abq=snova_97_33_16_2_aes_ref_fixed_abq
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_97_33_16_2_AES_ref>)
+endif()
+
+if(OQS_ENABLE_SIG_snova_SNOVA_97_33_16_2_AES_avx2)
+    add_library(snova_SNOVA_97_33_16_2_AES_avx2 OBJECT
+        snova_SNOVA_97_33_16_2_AES_avx2/snova_avx2_16.c
+        snova_SNOVA_97_33_16_2_AES_avx2/snova_oqs.c
+    )
+    target_include_directories(snova_SNOVA_97_33_16_2_AES_avx2 PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/snova_SNOVA_97_33_16_2_AES_avx2
+        ${PROJECT_SOURCE_DIR}/src/common/pqclean_shims
+    )
+    target_compile_options(snova_SNOVA_97_33_16_2_AES_avx2 PRIVATE -mavx2)
+    target_compile_definitions(snova_SNOVA_97_33_16_2_AES_avx2 PRIVATE
+        SNOVA_OPT=avx2
+        SNOVA_v=97
+        SNOVA_o=33
+        SNOVA_q=16
+        SNOVA_l=2
+        AESCTR
+    )
+    set(_SNOVA_OBJS ${_SNOVA_OBJS} $<TARGET_OBJECTS:snova_SNOVA_97_33_16_2_AES_avx2>)
+endif()
+
+set(SNOVA_OBJS ${_SNOVA_OBJS} PARENT_SCOPE)

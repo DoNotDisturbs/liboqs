@@ -1,44 +1,8 @@
-# liboqs fork for implementing additional NIST Round 2 PQC Digital Signature Algorithms
-
-Contributors:
-
-- [NectarCoder](https://github.com/NectarCoder)
-- [ryanesloven](https://github.com/ryanesloven)
-- [DoNotDisturbs](https://github.com/DoNotDisturbs)
-
-## Getting started
-
-General liboqs usage can be found in the general README below.  
-However this fork is for a specific purpose: to implement additional round 2 PQC signature algorithms.  
-
-From the project root directory:  
-Run `./SETUP_DEPS.sh` to download and install the dependencies. Then,  
-Run `./SETUP.sh` to build liboqs with all algorithms enabled.
-
-> [!NOTE]
-> For the purpose of benchmarking we set some CMAKE parameters to set the optimization level to generic.  
-> Hence, there will be no AVX or ARM/Neon optmizations when running `SETUP.sh`.  
-
-Go to the `test_sig` folder, run `make`.  
-Run `./test_sig <algorithm-id>` to see some test results.  
-Algorithm ID list can be found in the `src/sig/sig.h` header.  
-
-Example usage (for HAWK512):  
-```bash
-cd test_sig
-make clean; make
-./test_sig hawk-512
-```
-
----
-<br>  
-
 liboqs
 ======================
 
 [![Main Branch Tests](https://github.com/open-quantum-safe/liboqs/actions/workflows/commit-to-main.yml/badge.svg)](https://github.com/open-quantum-safe/liboqs/actions/workflows/commit-to-main.yml)
 [![Weekly Tests](https://github.com/open-quantum-safe/liboqs/actions/workflows/weekly.yml/badge.svg)](https://github.com/open-quantum-safe/liboqs/actions/workflows/weekly.yml)
-![Travis Build Status](https://img.shields.io/travis/com/open-quantum-safe/liboqs?logo=travis&label=Travis%20CI&labelColor=%23343B42&color=%232EBB4E)
 [![Coverage Status](https://coveralls.io/repos/github/open-quantum-safe/liboqs/badge.svg?branch=main)](https://coveralls.io/github/open-quantum-safe/liboqs?branch=main)
 
 liboqs is an open source C library for quantum-safe cryptographic algorithms.
@@ -49,8 +13,10 @@ liboqs is an open source C library for quantum-safe cryptographic algorithms.
 		- [Supported Algorithms](#supported-algorithms)
 			- [Key encapsulation mechanisms](#key-encapsulation-mechanisms)
 			- [Signature schemes](#signature-schemes)
+			- [Stateful signature schemes](#stateful-signature-schemes)
 		- [Limitations and Security](#limitations-and-security)
 			- [Platform limitations](#platform-limitations)
+			- [Support limitations](#support-limitations)
 	- [Quickstart](#quickstart)
 		- [Linux and Mac](#linux-and-mac)
 		- [Windows](#windows)
@@ -64,7 +30,7 @@ liboqs is an open source C library for quantum-safe cryptographic algorithms.
 
 liboqs provides:
 
-- a collection of open source implementations of quantum-safe key encapsulation mechanism (KEM) and digital signature algorithms; the full list can be found [below](#supported-algorithms)
+- a collection of open source implementations of quantum-safe key encapsulation mechanisms (KEMs) and digital signature algorithms; the full list can be found [below](#supported-algorithms)
 - a common API for these algorithms
 - a test harness and benchmarking routines
 
@@ -84,39 +50,41 @@ The list below indicates all algorithms currently supported by liboqs, including
 
 The only algorithms in `liboqs` that implement NIST standards are the [`ML-KEM`](https://csrc.nist.gov/pubs/fips/203/final) (final standard) and [`ML-DSA`](https://csrc.nist.gov/pubs/fips/204/final) (final standard) variants with their respective different bit strengths. `liboqs` will retain these algorithm names selected by NIST throughout the finishing stages of the standardization process, so users can rely on their presence going forward. If NIST changes the implementation details of these algorithms, `liboqs` will adjust the implementation so that users are protected from such potential changes.
 
-Falcon and SPHINCS+ have also been [selected for standardization](https://csrc.nist.gov/Projects/post-quantum-cryptography/selected-algorithms-2022), but the `liboqs` implementations of these algorithms are currently tracking Round 3 submissions and not NIST standards drafts.
+Falcon has also been [selected for standardization](https://csrc.nist.gov/Projects/post-quantum-cryptography/selected-algorithms-2022), but the `liboqs` implementations of these algorithms are currently tracking Round 3 submissions and not NIST standards drafts.
 
 All names other than `ML-KEM` and `ML-DSA` are subject to change. `liboqs` makes available a [selection mechanism for algorithms on the NIST standards track, continued NIST competition, or purely experimental nature by way of the configuration variable OQS_ALGS_ENABLED](CONFIGURE.md#oQS_ALGS_ENABLED). By default `liboqs` is built supporting all, incl. experimental, PQ algorithms listed below.
 
+<!-- OQS_TEMPLATE_FRAGMENT_ALG_SUPPORT_START -->
 #### Key encapsulation mechanisms
-
-<!--- OQS_TEMPLATE_FRAGMENT_LIST_KEXS_START -->
-- **BIKE**: BIKE-L1, BIKE-L3, BIKE-L5
-- **Classic McEliece**: Classic-McEliece-348864†, Classic-McEliece-348864f†, Classic-McEliece-460896†, Classic-McEliece-460896f†, Classic-McEliece-6688128†, Classic-McEliece-6688128f†, Classic-McEliece-6960119†, Classic-McEliece-6960119f†, Classic-McEliece-8192128†, Classic-McEliece-8192128f†
-- **FrodoKEM**: FrodoKEM-640-AES, FrodoKEM-640-SHAKE, FrodoKEM-976-AES, FrodoKEM-976-SHAKE, FrodoKEM-1344-AES, FrodoKEM-1344-SHAKE
-- **HQC**: HQC-128, HQC-192, HQC-256
-- **Kyber**: Kyber512, Kyber768, Kyber1024
-- **ML-KEM**: ML-KEM-512, ML-KEM-768, ML-KEM-1024
-- **NTRU-Prime**: sntrup761
-<!--- OQS_TEMPLATE_FRAGMENT_LIST_KEXS_END -->
+| Algorithm family   | Standardization status                                                                                                                                                                                                                    | Primary implementation                                                                                                                    |
+|:-------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------|
+| BIKE               | Not selected by [NIST](https://bikesuite.org/files/v5.1/BIKE_Spec.2022.10.10.1.pdf)                                                                                                                                                       | [`awslabs/bike-kem`](https://github.com/awslabs/bike-kem)                                                                                 |
+| Classic McEliece   | Under [ISO](https://classic.mceliece.org/iso.html) consideration                                                                                                                                                                          | [`PQClean/PQClean@1eacfda`](https://github.com/PQClean/PQClean/commit/1eacfdafc15ddc5d5759d0b85b4cef26627df181)                           |
+| FrodoKEM           | Under [ISO](https://frodokem.org/) consideration                                                                                                                                                                                          | [`microsoft/PQCrypto-LWEKE@a2f9dec`](https://github.com/microsoft/PQCrypto-LWEKE/commit/a2f9dec8917ccc3464b3378d46b140fa7353320d)         |
+| HQC                | Selected by [NIST](https://pqc-hqc.org/doc/hqc_specifications_2025_08_22.pdf) for upcoming standardization                                                                                                                                | [`PQClean/PQClean@1eacfda`](https://github.com/PQClean/PQClean/commit/1eacfdafc15ddc5d5759d0b85b4cef26627df181)                           |
+| Kyber              | Selected by [NIST](https://csrc.nist.gov/CSRC/media/Projects/post-quantum-cryptography/documents/round-3/submissions/Kyber-Round3.zip) as basis for ML-KEM (FIPS 203)                                                                     | [`pq-crystals/kyber@441c051`](https://github.com/pq-crystals/kyber/commit/441c0519a07e8b86c8d079954a6b10bd31d29efc)                       |
+| ML-KEM             | Standardized by [NIST](https://csrc.nist.gov/pubs/fips/203/final)                                                                                                                                                                         | [`pq-code-package/mlkem-native@d2cae2b`](https://github.com/pq-code-package/mlkem-native/commit/d2cae2be522a67bfae26100fdb520576f1b2ef90) |
+| NTRU               | Not selected by [NIST](https://csrc.nist.gov/CSRC/media/Projects/post-quantum-cryptography/documents/round-3/submissions/NTRU-Round3.zip), under standardization consideration by [NTT](https://info.isl.ntt.co.jp/crypt/ntru/index.html) | [`PQClean/PQClean@4c9e5a3`](https://github.com/PQClean/PQClean/commit/4c9e5a3aa715cc8d1d0e377e4e6e682ebd7602d6)                           |
+| NTRU-Prime         | Not selected by [NIST](https://csrc.nist.gov/CSRC/media/Projects/post-quantum-cryptography/documents/round-3/submissions/NTRU-Prime-Round3.zip)                                                                                           | [`openssh/openssh-portable`](https://github.com/openssh/openssh-portable/blob/1cc936b2fabffeac7fff14ca1070d7d7a317ab7b/sntrup761.c)       |
 
 #### Signature schemes
+| Algorithm family   | Standardization status                                                                                                                                               | Primary implementation                                                                                                                      |
+|:-------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------|
+| CROSS              | Under [NIST](https://www.cross-crypto.com/CROSS_Specification_v2.2.pdf) consideration                                                                                | [`CROSS-signature/CROSS-lib-oqs@a21ebc3`](https://github.com/CROSS-signature/CROSS-lib-oqs/commit/a21ebc314e06b0972a9bbcf2813a185ecb2917f1) |
+| Falcon             | Selected by [NIST](https://csrc.nist.gov/CSRC/media/Projects/post-quantum-cryptography/documents/round-3/submissions/Falcon-Round3.zip) for upcoming standardization | [`PQClean/PQClean@1eacfda`](https://github.com/PQClean/PQClean/commit/1eacfdafc15ddc5d5759d0b85b4cef26627df181)                             |
+| MAYO               | Under [NIST](https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/mayo-spec-round2-web.pdf) consideration                              | [`PQCMayo/MAYO-C@64e15c6`](https://github.com/PQCMayo/MAYO-C/commit/64e15c622dec1f59aa5bbaf7f7c8f4f20af75106)                               |
+| ML-DSA             | Standardized by [NIST](https://csrc.nist.gov/pubs/fips/204/final)                                                                                                    | [`pq-code-package/mldsa-native@f48f164`](https://github.com/pq-code-package/mldsa-native/commit/f48f164cefb07f4ffa519ddda7cee670b8ee3517)   |
+| MQOM               | Under [NIST](https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/mqom-spec-round2-web.pdf) consideration                              | [`mqom/mqom-v2@ec6b7fa`](https://github.com/mqom/mqom-v2/commit/ec6b7fa86e232a25f8b2f151a4b4eebb8e81b5e7)                                   |
+| SLH-DSA            | Standardized by [NIST](https://csrc.nist.gov/pubs/fips/205/final)                                                                                                    | [`pq-code-package/slhdsa-c@a0fc1ff`](https://github.com/pq-code-package/slhdsa-c/commit/a0fc1ff253930060d0246aebca06c2538eb92b88)           |
+| SNOVA              | Under [NIST](https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/snova-spec-round2-web.pdf) consideration                             | [`vacuas/SNOVA@1c3ca6f`](https://github.com/vacuas/SNOVA/commit/1c3ca6f4f7286c0bde98d7d6f222cf63b9d52bff)                                   |
+| UOV                | Under [NIST](https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/uov-spec-round2-web.pdf) consideration                               | [`pqov/pqov@33fa527`](https://github.com/pqov/pqov/commit/33fa5278754a32064c55901c3a17d48b06cc2351)                                         |
 
-<!--- OQS_TEMPLATE_FRAGMENT_LIST_SIGS_START -->
-- **CROSS**: cross-rsdp-128-balanced, cross-rsdp-128-fast, cross-rsdp-128-small†, cross-rsdp-192-balanced, cross-rsdp-192-fast, cross-rsdp-192-small†, cross-rsdp-256-balanced†, cross-rsdp-256-fast, cross-rsdp-256-small†, cross-rsdpg-128-balanced, cross-rsdpg-128-fast, cross-rsdpg-128-small, cross-rsdpg-192-balanced, cross-rsdpg-192-fast, cross-rsdpg-192-small†, cross-rsdpg-256-balanced, cross-rsdpg-256-fast, cross-rsdpg-256-small†
-- **CRYSTALS-Dilithium**: Dilithium2, Dilithium3, Dilithium5
-- **Falcon**: Falcon-512, Falcon-1024, Falcon-padded-512, Falcon-padded-1024
-- **MAYO**: MAYO-1, MAYO-2, MAYO-3, MAYO-5†
-- **ML-DSA**: ML-DSA-44, ML-DSA-65, ML-DSA-87
-- **SNOVA**: SNOVA\_24\_5\_4, SNOVA\_24\_5\_4\_SHAKE, SNOVA\_24\_5\_4\_esk, SNOVA\_24\_5\_4\_SHAKE\_esk, SNOVA\_37\_17\_2†, SNOVA\_25\_8\_3, SNOVA\_56\_25\_2†, SNOVA\_49\_11\_3†, SNOVA\_37\_8\_4†, SNOVA\_24\_5\_5†, SNOVA\_60\_10\_4†, SNOVA\_29\_6\_5†
-- **SPHINCS+-SHA2**: SPHINCS+-SHA2-128f-simple, SPHINCS+-SHA2-128s-simple, SPHINCS+-SHA2-192f-simple, SPHINCS+-SHA2-192s-simple, SPHINCS+-SHA2-256f-simple, SPHINCS+-SHA2-256s-simple
-- **SPHINCS+-SHAKE**: SPHINCS+-SHAKE-128f-simple, SPHINCS+-SHAKE-128s-simple, SPHINCS+-SHAKE-192f-simple, SPHINCS+-SHAKE-192s-simple, SPHINCS+-SHAKE-256f-simple, SPHINCS+-SHAKE-256s-simple
-- **UOV**: OV-Is, OV-Ip, OV-III, OV-V, OV-Is-pkc, OV-Ip-pkc, OV-III-pkc, OV-V-pkc, OV-Is-pkc-skc, OV-Ip-pkc-skc, OV-III-pkc-skc, OV-V-pkc-skc
-<!--- OQS_TEMPLATE_FRAGMENT_LIST_SIGS_END -->
-- **XMSS**: XMSS-SHA2_10_256, XMSS-SHA2_16_256, XMSS-SHA2_20_256, XMSS-SHAKE_10_256, XMSS-SHAKE_16_256, XMSS-SHAKE_20_256, XMSS-SHA2_10_512, XMSS-SHA2_16_512, XMSS-SHA2_20_512, XMSS-SHAKE_10_512, XMSS-SHAKE_16_512, XMSS-SHAKE_20_512, XMSS-SHA2_10_192, XMSS-SHA2_16_192, XMSS-SHA2_20_192, XMSS-SHAKE256_10_192, XMSS-SHAKE256_16_192, XMSS-SHAKE256_20_192, SHAKE256_10_256, SHAKE256_16_256, SHAKE256_20_256, XMSSMT-SHA2_20/2_256, XMSSMT-SHA2_20/4_256, XMSSMT-SHA2_40/2_256, XMSSMT-SHA2_40/4_256, XMSSMT-SHA2_40/8_256, XMSSMT-SHA2_60/3_256, XMSSMT-SHA2_60/6_256, XMSSMT-SHA2_60/12_256, XMSSMT-SHAKE_20/2_256, XMSSMT-SHAKE_20/4_256, XMSSMT-SHAKE_40/2_256, XMSSMT-SHAKE_40/4_256, XMSSMT-SHAKE_40/8_256, XMSSMT-SHAKE_60/3_256, XMSSMT-SHAKE_60/6_256, XMSSMT-SHAKE_60/12_256 
-- **LMS**: LMS_SHA256_H5_W1, LMS_SHA256_H5_W2, LMS_SHA256_H5_W4, LMS_SHA256_H5_W8, LMS_SHA256_H10_W1, LMS_SHA256_H10_W2, LMS_SHA256_H10_W4, LMS_SHA256_H10_W8, LMS_SHA256_H15_W1, LMS_SHA256_H15_W2, LMS_SHA256_H15_W4, LMS_SHA256_H15_W8, LMS_SHA256_H20_W1, LMS_SHA256_H20_W2, LMS_SHA256_H20_W4, LMS_SHA256_H20_W8, LMS_SHA256_H25_W1, LMS_SHA256_H25_W2, LMS_SHA256_H25_W4, LMS_SHA256_H25_W8, LMS_SHA256_H5_W8_H5_W8, LMS_SHA256_H10_W4_H5_W8, LMS_SHA256_H10_W8_H5_W8, LMS_SHA256_H10_W2_H10_W2, LMS_SHA256_H10_W4_H10_W4, LMS_SHA256_H10_W8_H10_W8, LMS_SHA256_H15_W8_H5_W8, LMS_SHA256_H15_W8_H10_W8, LMS_SHA256_H15_W8_H15_W8, LMS_SHA256_H20_W8_H5_W8, LMS_SHA256_H20_W8_H10_W8, LMS_SHA256_H20_W8_H15_W8, LMS_SHA256_H20_W8_H20_W8
-
-Note that for algorithms marked with a dagger (†), liboqs contains at least one implementation that uses a large amount of stack space; this may cause failures when run in threads or in constrained environments. For more information, consult the algorithm information sheets in the [docs/algorithms](https://github.com/open-quantum-safe/liboqs/tree/main/docs/algorithms) folder.
+#### Stateful signature schemes
+| Algorithm family   | Standardization status                                                                                                                                         | Primary implementation                                          |
+|:-------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------------|
+| LMS                | Standardized by [IRTF](https://www.rfc-editor.org/info/rfc8554), approved by [NIST](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-208.pdf) | [`cisco/hash-sigs`](https://github.com/cisco/hash-sigs)         |
+| XMSS               | Standardized by [IRTF](https://www.rfc-editor.org/info/rfc8391), approved by [NIST](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-208.pdf) | [`XMSS/xmss-reference`](https://github.com/XMSS/xmss-reference) |
+<!-- OQS_TEMPLATE_FRAGMENT_ALG_SUPPORT_END -->
 
 ### Limitations and Security
 
@@ -250,13 +218,12 @@ liboqs includes some third party libraries or modules that are licensed differen
 - `src/kem/kyber/pqcrystals-*`: public domain (CC0) or Apache License v2.0
 - `src/kem/kyber/pqclean_*`: public domain (CC0), and public domain (CC0) or Apache License v2.0, and public domain (CC0) or MIT, and MIT
 - `src/kem/kyber/libjade_*` public domain (CC0) or Apache License v2.
-- `src/kem/ml_kem/mlkem-native_*`: Apache License v2.0
-- `src/sig/dilithium/pqcrystals-*`: public domain (CC0) or Apache License v2.0
-- `src/sig/dilithium/pqclean_*`: public domain (CC0), and public domain (CC0) or Apache License v2.0, and public domain (CC0) or MIT, and MIT
+- `src/kem/ml_kem/mlkem-native_*`: MIT or Apache License v2.0 or ISC License
+- `src/kem/ntru/pqclean_*`: public domain (CC0)
+- `src/kem/ntruprime/sntrup761_openssh`: public domain
 -  src/sig/falcon/pqclean_\*\_aarch64 : Apache License v2.0
 - `src/sig/mayo/*`: Apache License v2.0
 - `src/sig/ml_dsa/pqcrystals-*`: public domain (CC0) or Apache License v2.0
-- `src/sig/sphincs/pqclean_*`: CC0 (public domain)
 
 ## Acknowledgements
 
